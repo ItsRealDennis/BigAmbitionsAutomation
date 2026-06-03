@@ -1,0 +1,10 @@
+<!-- Shared MSBuild settings auto-imported by every project in this repo.
+     Must live at the repo root so projects under src/ and tests/ inherit it. -->
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
+</Project>

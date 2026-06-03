@@ -1,0 +1,18 @@
+# Build output
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# Local copies of game / loader DLLs (NEVER commit the game's assemblies)
+build/refs/
+
+# IDE / tooling
+.vs/
+.idea/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store

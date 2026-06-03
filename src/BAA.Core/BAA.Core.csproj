@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- THE BRAIN. Zero game references on purpose: `using Il2Cpp...` will not
+       compile here, which enforces the adapter boundary at the compiler level. -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>BAA.Core</AssemblyName>
+    <RootNamespace>BAA.Core</RootNamespace>
+  </PropertyGroup>
+
+</Project>
