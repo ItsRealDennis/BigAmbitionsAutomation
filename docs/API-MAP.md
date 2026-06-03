@@ -58,6 +58,12 @@ Master access path for state: **`Il2Cpp.SaveGameManager.Current`** (static) → 
 
 > Note: the research doc's `TimeMachine` and `BizMan` data-layer names are wrong. Time = GameManager/GameSpeedController; the BizMan* types are UI panels — real data is `GameInstance` + `Il2CppEntities.*`.
 
+### Input / click-through (game uses the NEW Unity Input System)
+- World clicks flow through **`Il2Cpp.MouseController.Run()`** (static, per-frame: click-to-move, interact, select). There is **no** `EventSystem.IsPointerOverGameObject` wrapper.
+- Our IMGUI overlay blocks click-through by Harmony-**prefixing `MouseController.Run()`** to skip when the cursor is over the panel (`ModEntry.PointerOverPanel`, set in OnGUI vs `OverlayUI.PanelRect`). IMGUI (OnGUI/Event.current) is a separate path, so panel buttons still work. Implemented in `Hooks/MouseClickBlockPatch.cs`.
+- Movement gate (for our own synthetic actions later): `Il2Cpp.PlayerController.SetNavigationBlocker(NavigationBlocker)` / `get_NavigationDisabled()`; global gates `GameManager.ShouldBlockKeyboardShortcuts()` / `HasInputSelected()`; major-panel flags like `FullMenu.IsOpen`, `PurchaseUI.IsPanelOpen`.
+- Other click handlers: `MouseController.DetermineMouseHold()`, `InputHelper.GetClickedComponent(LayerMask,bool)`, `EntityController.OnIoLeftClick()` (virtual, per-object), `PlayerController.SetNewDestination(...)`.
+
 ### Still to map for restock (M5) — via the live probe + `Il2CppEntities.*`
 Businesses = `Il2Cpp.BuildingRegistration` / `Il2CppEntities.RealEstate`; display/storage shelves =
 `Il2Cpp.ShelfController` / `StorageShelfController` (`fillState`, `IsFull()`); products =

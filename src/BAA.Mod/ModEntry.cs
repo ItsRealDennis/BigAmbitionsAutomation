@@ -15,6 +15,9 @@ public sealed class ModEntry : MelonMod
     internal static MelonLogger.Instance Log;
     internal static readonly AutomationConfig Config = new();
 
+    /// <summary>True when the cursor is over the open panel — read by the click-through-blocking patch.</summary>
+    internal static bool PointerOverPanel;
+
     private const float FastFactor = 8f;
 
     private readonly OverlayUI _overlay = new();
@@ -29,8 +32,9 @@ public sealed class ModEntry : MelonMod
     public override void OnInitializeMelon()
     {
         Log = LoggerInstance;
+        ModPreferences.Load(Config);
         Log.Msg("================ BA BOT loaded ================");
-        Log.Msg($"Core linked OK (master default = {Config.MasterEnabled}). Press F8 in-game for the panel.");
+        Log.Msg($"Settings loaded (master = {Config.MasterEnabled}). Press F8 in-game for the panel.");
         Diagnostics.Activity.Add("BA BOT loaded - press F8");
     }
 
@@ -41,6 +45,8 @@ public sealed class ModEntry : MelonMod
         {
             _refreshTimer = 0f;
             _snapshot = GameProbe.Read();
+            MaybeRefillEnergy();
+            ModPreferences.SaveIfChanged(Config);
         }
 
         ApplyTimeSkip();
@@ -50,6 +56,13 @@ public sealed class ModEntry : MelonMod
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
+    }
+
+    /// <summary>Auto-wellbeing: refill energy when it dips, so the player never has to stop to sleep.</summary>
+    private void MaybeRefillEnergy()
+    {
+        if (Config.MasterEnabled && Config.WellbeingEnabled && _snapshot.HasSave && _snapshot.Energy < 30f)
+            GameActions.RefillEnergy();
     }
 
     /// <summary>Fast-forwards in-game time while Time-skip is on; restores the original speed when off.</summary>
@@ -84,6 +97,9 @@ public sealed class ModEntry : MelonMod
             _visible = !_visible;
             e.Use();
         }
+
+        // Track whether the cursor is over the panel so the world-click block patch can read it.
+        PointerOverPanel = _visible && e != null && OverlayUI.PanelRect.Contains(e.mousePosition);
 
         if (!_visible)
             return;

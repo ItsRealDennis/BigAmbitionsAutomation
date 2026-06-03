@@ -13,6 +13,9 @@ internal sealed class OverlayUI
     private const float W = 380f, H = 600f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
 
+    /// <summary>Screen rect of the panel in GUI space (origin top-left) — used to block click-through.</summary>
+    internal static Rect PanelRect => new Rect(X, Y, W, H);
+
     // Palette tuned to the game's pause menu (slate panels, vivid buttons, bold white text).
     private static readonly Color Slate = new(0.21f, 0.25f, 0.31f, 0.97f);
     private static readonly Color Inset = new(0.12f, 0.14f, 0.18f, 0.85f);
@@ -74,6 +77,7 @@ internal sealed class OverlayUI
         cfg.EmployeesEnabled = SwitchRow(ix, ref cy, iw, "EMPLOYEES", cfg.EmployeesEnabled, true);
         cfg.FinanceEnabled = SwitchRow(ix, ref cy, iw, "FINANCE AUTO-PAY", cfg.FinanceEnabled, true);
         cfg.TimeSkipEnabled = SwitchRow(ix, ref cy, iw, "TIME-SKIP (AFK)", cfg.TimeSkipEnabled, true);
+        cfg.WellbeingEnabled = SwitchRow(ix, ref cy, iw, "AUTO-WELLBEING", cfg.WellbeingEnabled, true);
         cy += 8;
 
         // --- Reserve floor ---

@@ -18,6 +18,9 @@ public sealed class AutomationConfig
     public bool FinanceEnabled { get; set; }
     public bool TimeSkipEnabled { get; set; }
 
+    /// <summary>Keep the player's energy topped up automatically (instant QoL, no business needed).</summary>
+    public bool WellbeingEnabled { get; set; }
+
     /// <summary>Automation will not spend cash below this floor.</summary>
     public decimal CashReserveFloor { get; set; }
 
