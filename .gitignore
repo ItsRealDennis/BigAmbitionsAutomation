@@ -4,8 +4,9 @@ obj/
 [Bb]in/
 [Oo]bj/
 
-# Local copies of game / loader DLLs (NEVER commit the game's assemblies)
-build/refs/
+# Build scratch: local copies of game DLLs + decompiled/dumped game internals.
+# NEVER commit the game's assemblies or decompiled output.
+build/
 
 # IDE / tooling
 .vs/

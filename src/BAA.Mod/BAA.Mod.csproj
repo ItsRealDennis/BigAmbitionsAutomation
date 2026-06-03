@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The MelonLoader mod assembly: the ONLY project that references the game + IL2CPP.
+       References resolve from the local Big Ambitions install (set BigAmbitionsDir or BIG_AMBITIONS_DIR
+       to override). The game DLLs are never copied/redistributed (<Private>false</Private>). -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>BAA.Mod</AssemblyName>
+    <RootNamespace>BAA.Mod</RootNamespace>
+    <Nullable>disable</Nullable>
+    <BigAmbitionsDir Condition="'$(BigAmbitionsDir)'==''">$(BIG_AMBITIONS_DIR)</BigAmbitionsDir>
+    <BigAmbitionsDir Condition="'$(BigAmbitionsDir)'==''">C:\Program Files (x86)\Steam\steamapps\common\Big Ambitions</BigAmbitionsDir>
+    <Il2CppDir>$(BigAmbitionsDir)\MelonLoader\Il2CppAssemblies</Il2CppDir>
+    <MelonNet6Dir>$(BigAmbitionsDir)\MelonLoader\net6</MelonNet6Dir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BAA.Core\BAA.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Loader / Harmony / interop -->
+    <Reference Include="$(MelonNet6Dir)\MelonLoader.dll"><Private>false</Private></Reference>
+    <Reference Include="$(MelonNet6Dir)\0Harmony.dll"><Private>false</Private></Reference>
+    <Reference Include="$(MelonNet6Dir)\Il2CppInterop.Runtime.dll"><Private>false</Private></Reference>
+    <Reference Include="$(MelonNet6Dir)\Il2CppInterop.Common.dll"><Private>false</Private></Reference>
+    <!-- Game + Unity + BCL proxies (generated on first MelonLoader launch) -->
+    <Reference Include="$(Il2CppDir)\*.dll"><Private>false</Private></Reference>
+  </ItemGroup>
+
+</Project>
