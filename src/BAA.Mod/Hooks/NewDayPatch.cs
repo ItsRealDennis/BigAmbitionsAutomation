@@ -15,7 +15,11 @@ internal static class NewDayPatch
     {
         try
         {
-            GameProbe.LogSnapshot("NewDay");
+            var s = GameProbe.Read();
+            if (!s.HasSave)
+                return;
+            ModEntry.Log.Msg($"[NewDay] Day {s.Day} | Money ${s.Money:N0} | NetWorth ${s.NetWorth:N0}");
+            Diagnostics.Activity.Add($"Day {s.Day} began  -  ${s.Money:N0}");
         }
         catch (System.Exception ex)
         {

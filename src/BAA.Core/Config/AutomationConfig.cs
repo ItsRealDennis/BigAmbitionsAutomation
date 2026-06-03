@@ -6,8 +6,17 @@ namespace BAA.Core.Config;
 /// </summary>
 public sealed class AutomationConfig
 {
+    /// <summary>Master switch for ALL automation. Off by default.</summary>
+    public bool MasterEnabled { get; set; }
+
     /// <summary>Master switch for auto-restock. Off by default.</summary>
     public bool RestockEnabled { get; set; }
+
+    /// <summary>Per-feature master switches (all off by default).</summary>
+    public bool LogisticsEnabled { get; set; }
+    public bool EmployeesEnabled { get; set; }
+    public bool FinanceEnabled { get; set; }
+    public bool TimeSkipEnabled { get; set; }
 
     /// <summary>Automation will not spend cash below this floor.</summary>
     public decimal CashReserveFloor { get; set; }
