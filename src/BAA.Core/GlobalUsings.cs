@@ -5,3 +5,4 @@ global using BAA.Core.Config;
 global using BAA.Core.Engine;
 global using BAA.Core.Managers;
 global using BAA.Core.Safety;
+global using BAA.Core.Safety.Breakers;
