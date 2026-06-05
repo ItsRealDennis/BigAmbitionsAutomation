@@ -1,0 +1,21 @@
+BA BOT - Big Ambitions automation mod
+=====================================
+
+QUICK INSTALL
+  1. Make sure you have MelonLoader installed in Big Ambitions, and have launched
+     the game once (so it generates its assemblies).
+     MelonLoader: https://github.com/LavaGang/MelonLoader.Installer
+  2. Windows 11: turn OFF Smart App Control, or it will block the mod.
+     (Windows Security > App & browser control > Smart App Control > Off)
+  3. Double-click  install.bat  and follow the prompts.
+  4. Launch Big Ambitions and press  F8  in-game to open the BA BOT panel.
+
+TO REMOVE
+  Double-click  uninstall.bat
+
+WHAT IT DOES
+  An in-game control panel (F8): live cash/day status, quick actions (+$1,000,
+  Energy 100%), Time-skip (AFK fast-forward), Auto-wellbeing (keeps energy up),
+  and toggles for upcoming automation. Single-player only; back up your saves.
+
+Source + updates: https://github.com/ItsRealDennis/BigAmbitionsAutomation

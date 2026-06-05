@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BA BOT — Big Ambitions on Autopilot</title>
+<meta name="description" content="An in-game automation mod for Big Ambitions. Run your Manhattan empire while you're away — restocking, upkeep, time-skip and more, from one control panel." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#080b11; --bg2:#0c1019; --panel:#161d2b; --panel2:#1b2433;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.04);
+    --txt:#e9eef6; --dim:#94a2b8; --faint:#5f6c80;
+    --cyan:#5cc6ff; --green:#54dc8e; --amber:#ffb454;
+    --r:18px;
+    --sans:"Satoshi",system-ui,sans-serif;
+    --disp:"Clash Display",var(--sans);
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--txt); background:var(--bg);
+    -webkit-font-smoothing:antialiased; overflow-x:hidden; line-height:1.5;
+  }
+  /* atmosphere: gradient mesh + grain */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(60% 50% at 78% -5%, rgba(92,198,255,.16), transparent 60%),
+      radial-gradient(50% 45% at 12% 8%, rgba(84,220,142,.12), transparent 60%),
+      radial-gradient(70% 60% at 50% 110%, rgba(92,198,255,.10), transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+  }
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; opacity:.04; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);
+    background:linear-gradient(180deg,rgba(8,11,17,.85),rgba(8,11,17,.4));
+    border-bottom:1px solid var(--line2)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:700;letter-spacing:.3px;font-size:19px}
+  .logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--cyan),var(--green));color:#06121b;font-weight:700;font-family:var(--mono);font-size:15px}
+  .nav-links{display:flex;align-items:center;gap:28px;font-size:14.5px;color:var(--dim)}
+  .nav-links a:hover{color:var(--txt)}
+  .nav-links .ghost{color:var(--dim)}
+  @media(max-width:720px){.nav-links a:not(.btn){display:none}}
+
+  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:14.5px;
+    padding:11px 18px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:.2s;white-space:nowrap}
+  .btn.primary{background:linear-gradient(135deg,var(--cyan),var(--green));color:#05141d;
+    box-shadow:0 8px 30px -8px rgba(92,198,255,.5)}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px -8px rgba(92,198,255,.65)}
+  .btn.ghost{border-color:var(--line);color:var(--txt);background:rgba(255,255,255,.02)}
+  .btn.ghost:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.05)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:84px 0 70px}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+  @media(max-width:920px){.hero-grid{grid-template-columns:1fr;gap:46px}}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;
+    color:var(--cyan);padding:6px 13px;border:1px solid rgba(92,198,255,.3);border-radius:100px;
+    background:rgba(92,198,255,.06);text-transform:uppercase;letter-spacing:1.5px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(40px,6.2vw,68px);line-height:1.02;
+    letter-spacing:-1.5px;margin:22px 0 0}
+  h1 .grad{background:linear-gradient(120deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--dim);font-size:clamp(16px,1.5vw,19px);max-width:520px;margin:22px 0 32px;line-height:1.65}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .cta-note{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:18px}
+
+  /* hero panel replica */
+  .panel-stage{position:relative;display:flex;justify-content:center;perspective:1400px}
+  .glow{position:absolute;inset:-10% -6%;background:radial-gradient(50% 50% at 50% 40%,rgba(92,198,255,.22),transparent 70%);filter:blur(20px);z-index:0}
+  .panel{position:relative;z-index:1;width:330px;background:linear-gradient(180deg,#19212f,#141a26);
+    border:1px solid var(--line);border-radius:20px;padding:18px;
+    box-shadow:0 40px 80px -30px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03) inset;
+    transform:rotateY(-13deg) rotateX(5deg) translateZ(0);animation:float 7s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:rotateY(-13deg) rotateX(5deg) translateY(0)}50%{transform:rotateY(-9deg) rotateX(4deg) translateY(-12px)}}
+  @media(max-width:920px){.panel{transform:none;animation:none}}
+  .p-title{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--cyan);letter-spacing:.3px}
+  .p-sub{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--faint);margin-top:2px}
+  .p-card{margin-top:14px;background:rgba(0,0,0,.32);border:1px solid var(--line2);border-radius:12px;padding:13px 15px}
+  .p-cash{font-family:var(--disp);font-weight:700;font-size:24px}
+  .p-meta{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:3px}
+  .p-sec{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--cyan);margin:16px 0 9px}
+  .p-actions{display:flex;gap:8px;margin-bottom:6px}
+  .p-act{flex:1;text-align:center;font-weight:700;font-size:12px;padding:9px;border-radius:9px;color:#06141d}
+  .p-act.b{background:linear-gradient(135deg,#3aa0e6,#2d7fd1)}
+  .p-act.g{background:linear-gradient(135deg,#54dc8e,#37b06a)}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:7px 2px}
+  .row span{font-weight:500;font-size:13px;color:#cfd7e3}
+  .sw{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:4px 9px;border-radius:7px;letter-spacing:.5px}
+  .sw.on{background:linear-gradient(135deg,#54dc8e,#37b06a);color:#06140c}
+  .sw.off{background:rgba(255,255,255,.07);color:var(--faint)}
+
+  /* ---------- marquee strip ---------- */
+  .strip{border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(255,255,255,.015)}
+  .strip .wrap{display:flex;flex-wrap:wrap;gap:10px 38px;justify-content:center;padding:18px 24px;
+    font-family:var(--mono);font-size:12.5px;color:var(--faint);letter-spacing:.5px}
+  .strip b{color:var(--dim);font-weight:500}
+  .strip .sep{color:var(--cyan);opacity:.5}
+
+  /* ---------- sections ---------- */
+  section{padding:84px 0}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan)}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.8px;margin:14px 0 0;max-width:680px}
+  .sub{color:var(--dim);font-size:17px;max-width:620px;margin:16px 0 0;line-height:1.6}
+  .head{margin-bottom:46px}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:920px){.features{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.features{grid-template-columns:1fr}}
+  .card{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+    border:1px solid var(--line);border-radius:var(--r);padding:24px;overflow:hidden;transition:.25s}
+  .card:hover{transform:translateY(-4px);border-color:rgba(92,198,255,.35);box-shadow:0 24px 50px -28px rgba(92,198,255,.35)}
+  .card .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:21px;
+    background:rgba(92,198,255,.1);border:1px solid rgba(92,198,255,.2);margin-bottom:16px}
+  .card h3{font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.2px}
+  .card p{color:var(--dim);font-size:14.5px;margin-top:8px;line-height:1.6}
+  .card.soon .ic{background:rgba(255,180,84,.1);border-color:rgba(255,180,84,.25)}
+  .tag-soon{position:absolute;top:16px;right:16px;font-family:var(--mono);font-size:9.5px;letter-spacing:1px;
+    color:var(--amber);border:1px solid rgba(255,180,84,.3);padding:3px 8px;border-radius:100px;background:rgba(255,180,84,.06)}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:740px){.steps{grid-template-columns:1fr}}
+  .step{border:1px solid var(--line);border-radius:var(--r);padding:26px;background:rgba(255,255,255,.018)}
+  .step .n{font-family:var(--mono);font-size:13px;color:var(--cyan);border:1px solid rgba(92,198,255,.3);
+    width:34px;height:34px;border-radius:9px;display:grid;place-items:center;margin-bottom:16px}
+  .step h3{font-family:var(--disp);font-weight:600;font-size:17px}
+  .step p{color:var(--dim);font-size:14px;margin-top:7px;line-height:1.6}
+  .step code{font-family:var(--mono);font-size:12.5px;color:var(--green);background:rgba(84,220,142,.08);padding:2px 6px;border-radius:5px}
+
+  /* safety split */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+  @media(max-width:860px){.split{grid-template-columns:1fr;gap:34px}}
+  .safelist{list-style:none;display:flex;flex-direction:column;gap:16px}
+  .safelist li{display:flex;gap:14px;align-items:flex-start}
+  .check{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    background:rgba(84,220,142,.12);border:1px solid rgba(84,220,142,.3);color:var(--green);font-weight:700;font-size:14px}
+  .safelist b{font-weight:700;font-size:15px}
+  .safelist p{color:var(--dim);font-size:14px;margin-top:3px;line-height:1.55}
+  .code-card{background:#0a0e16;border:1px solid var(--line);border-radius:var(--r);padding:0;overflow:hidden;font-family:var(--mono)}
+  .code-bar{display:flex;gap:7px;padding:13px 16px;border-bottom:1px solid var(--line2)}
+  .code-bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .code-body{padding:18px 20px;font-size:13px;line-height:1.9;color:var(--dim)}
+  .code-body .k{color:var(--cyan)} .code-body .s{color:var(--green)} .code-body .c{color:var(--faint)}
+
+  /* cta band */
+  .band{position:relative;border:1px solid var(--line);border-radius:26px;padding:60px 40px;text-align:center;overflow:hidden;
+    background:linear-gradient(180deg,rgba(92,198,255,.08),rgba(84,220,142,.04))}
+  .band h2{font-family:var(--disp);font-weight:700;font-size:clamp(28px,4vw,44px);letter-spacing:-1px}
+  .band p{color:var(--dim);margin:14px auto 28px;max-width:480px}
+
+  footer{border-top:1px solid var(--line2);padding:40px 0;color:var(--faint);font-size:13.5px}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center}
+  .foot a{color:var(--dim)} .foot a:hover{color:var(--txt)}
+  .disclaimer{font-size:12px;color:var(--faint);margin-top:18px;max-width:640px;line-height:1.6}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(22px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap nav">
+  <div class="brand"><div class="logo">BA</div> BA&nbsp;BOT</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="#safety">Safety</a>
+    <a class="ghost" href="https://github.com/ItsRealDennis/BigAmbitionsAutomation" target="_blank" rel="noopener">GitHub</a>
+    <a class="btn primary" href="https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest" target="_blank" rel="noopener">Download</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap hero-grid">
+  <div class="reveal in">
+    <span class="pill"><span class="dot"></span> Free &amp; open-source · v0.1.0</span>
+    <h1>Your Manhattan empire,<br><span class="grad">on autopilot.</span></h1>
+    <p class="lede">BA&nbsp;BOT is an in-game automation suite for <b>Big Ambitions</b>. Skip the grind — restocking, daily upkeep, errands and AFK time-skip — all from one sleek control panel that lives inside the game. Press <b>F8</b> and run the empire while you live the life.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest" target="_blank" rel="noopener">↓ Download for free</a>
+      <a class="btn ghost" href="#features">See what it does</a>
+    </div>
+    <p class="cta-note">Windows · MelonLoader · one-click installer included</p>
+  </div>
+
+  <div class="panel-stage reveal in">
+    <div class="glow"></div>
+    <div class="panel" aria-hidden="true">
+      <div class="p-title">BA BOT</div>
+      <div class="p-sub">AUTOMATION CONTROL</div>
+      <div class="p-card">
+        <div class="p-cash">$248,500</div>
+        <div class="p-meta">DAY 42 · 08:30 · NET $1.2M</div>
+      </div>
+      <div class="p-sec">QUICK ACTIONS</div>
+      <div class="p-actions">
+        <div class="p-act b">+$1,000</div>
+        <div class="p-act g">ENERGY 100%</div>
+      </div>
+      <div class="p-sec">FEATURES</div>
+      <div class="row"><span>Automation (master)</span><span class="sw on">ON</span></div>
+      <div class="row"><span>Auto-restock</span><span class="sw on">ON</span></div>
+      <div class="row"><span>Logistics</span><span class="sw on">ON</span></div>
+      <div class="row"><span>Time-skip (AFK)</span><span class="sw off">OFF</span></div>
+      <div class="row"><span>Auto-wellbeing</span><span class="sw on">ON</span></div>
+    </div>
+  </div>
+</div></header>
+
+<div class="strip"><div class="wrap">
+  <span><b>MelonLoader + HarmonyLib</b></span><span class="sep">/</span>
+  <span><b>Reads true game state</b></span><span class="sep">/</span>
+  <span><b>Fail-safe by design</b></span><span class="sep">/</span>
+  <span><b>Never touches your save</b></span><span class="sep">/</span>
+  <span><b>Open source</b></span>
+</div></div>
+
+<section id="features"><div class="wrap">
+  <div class="head reveal">
+    <span class="eyebrow">What it does</span>
+    <h2 class="h2">One panel. Total control of the grind.</h2>
+    <p class="sub">Everything runs inside the game with a UI built to match it — no alt-tabbing, no spreadsheets, no fragile screen-reading bots.</p>
+  </div>
+  <div class="features">
+    <div class="card reveal"><div class="ic">🎛️</div><h3>In-game control panel</h3><p>A polished F8 overlay styled to match Big Ambitions — live cash, day &amp; net-worth, with every toggle a tap away.</p></div>
+    <div class="card reveal"><div class="ic">⚡</div><h3>Instant quick-actions</h3><p>One-click <b>+$1,000</b> and <b>Energy 100%</b>. Useful from the second you spawn — no shop required.</p></div>
+    <div class="card reveal"><div class="ic">⏩</div><h3>Time-skip (AFK)</h3><p>Fast-forward the clock while your businesses keep earning. Step away; come back richer.</p></div>
+    <div class="card reveal"><div class="ic">❤️‍🩹</div><h3>Auto-wellbeing</h3><p>Keeps energy topped up automatically so you never have to stop the empire to sleep or eat.</p></div>
+    <div class="card reveal"><div class="ic">🛡️</div><h3>Click-safe overlay</h3><p>Clicks on the panel never leak into the world — hooked straight into the game's input layer.</p></div>
+    <div class="card reveal"><div class="ic">💾</div><h3>Settings that stick</h3><p>Your toggles and reserve floor persist across sessions. Set it once, forget it.</p></div>
+    <div class="card soon reveal"><span class="tag-soon">SOON</span><div class="ic">📦</div><h3>Auto-restock</h3><p>Detects empty shelves and buys stock back to target — the #1 tedium, gone.</p></div>
+    <div class="card soon reveal"><span class="tag-soon">SOON</span><div class="ic">🚚</div><h3>Logistics &amp; finance</h3><p>Auto warehouse→store delivery, repeating imports, rent &amp; bills — orchestrated across every business.</p></div>
+    <div class="card soon reveal"><span class="tag-soon">SOON</span><div class="ic">👔</div><h3>Employees</h3><p>Recruiting, wages, scheduling and training cycles handled for you.</p></div>
+  </div>
+</div></section>
+
+<section id="install" style="padding-top:20px"><div class="wrap">
+  <div class="head reveal">
+    <span class="eyebrow">Get started</span>
+    <h2 class="h2">Installed in under a minute.</h2>
+    <p class="sub">A one-click installer auto-detects your game and drops everything in place.</p>
+  </div>
+  <div class="steps">
+    <div class="step reveal"><div class="n">1</div><h3>Prep the game</h3><p>Install <b>MelonLoader</b> into Big Ambitions and launch once. On Windows 11, turn off Smart App Control.</p></div>
+    <div class="step reveal"><div class="n">2</div><h3>Run the installer</h3><p>Download the release, unzip, and double-click <code>install.bat</code>. It finds your game and copies the mod.</p></div>
+    <div class="step reveal"><div class="n">3</div><h3>Press F8</h3><p>Launch the game and hit <code>F8</code> to open BA BOT. Flip on what you want — done.</p></div>
+  </div>
+</div></section>
+
+<section id="safety" style="padding-top:20px"><div class="wrap split">
+  <div class="reveal">
+    <span class="eyebrow">Built to fail safe</span>
+    <h2 class="h2" style="font-size:clamp(26px,3.2vw,36px)">Automation you can trust to leave running.</h2>
+    <ul class="safelist" style="margin-top:28px">
+      <li><span class="check">✓</span><div><b>Default-OFF.</b><p>A fresh install does nothing until you opt in, feature by feature.</p></div></li>
+      <li><span class="check">✓</span><div><b>Reserve floor &amp; budget.</b><p>It never spends below the cash cushion you set — checked against the whole plan, not one buy at a time.</p></div></li>
+      <li><span class="check">✓</span><div><b>Safety breakers.</b><p>Low funds, unpaid rent or empty inventory halt automation and tell you why.</p></div></li>
+      <li><span class="check">✓</span><div><b>Never writes your save.</b><p>All settings live outside the save file. Uninstall any time and load vanilla, clean.</p></div></li>
+    </ul>
+  </div>
+  <div class="code-card reveal">
+    <div class="code-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="code-body">
+      <span class="c">// the brain decides before it acts</span><br>
+      <span class="k">plan</span> = restock.<span class="k">Plan</span>(state)<br>
+      <span class="k">gate</span> = safety.<span class="k">Evaluate</span>(plan)<br>
+      <span class="c">// reserve floor: $5,000</span><br>
+      &nbsp;&nbsp;→ buy milk ×8 <span class="s">−$12</span> ✓<br>
+      &nbsp;&nbsp;→ buy steak ×40 <span class="c">// would breach floor</span> ✗<br>
+      <span class="k">apply</span>(gate.<span class="k">Approved</span>) <span class="s">// only safe actions</span><br>
+      <br>
+      <span class="c">18/18 unit tests green ·</span> <span class="s">save untouched</span>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding-top:20px"><div class="wrap">
+  <div class="band reveal">
+    <h2>Stop running errands.<br>Start running an empire.</h2>
+    <p>Free, open-source, and getting better every week. Grab it and put the grind on autopilot.</p>
+    <div class="cta-row" style="justify-content:center">
+      <a class="btn primary" href="https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest" target="_blank" rel="noopener">↓ Download BA BOT</a>
+      <a class="btn ghost" href="https://github.com/ItsRealDennis/BigAmbitionsAutomation" target="_blank" rel="noopener">★ Star on GitHub</a>
+    </div>
+  </div>
+  <p class="disclaimer">BA BOT is a fan-made, single-player mod and is not affiliated with or endorsed by Hovgaard Games. Big Ambitions is in Early Access; mod at your own risk and back up your saves.</p>
+</div></section>
+
+<footer><div class="wrap foot">
+  <div class="brand" style="font-size:16px"><div class="logo" style="width:26px;height:26px;font-size:13px">BA</div> BA BOT</div>
+  <div style="display:flex;gap:24px">
+    <a href="https://github.com/ItsRealDennis/BigAmbitionsAutomation" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest" target="_blank" rel="noopener">Download</a>
+    <a href="https://github.com/ItsRealDennis/BigAmbitionsAutomation/issues" target="_blank" rel="noopener">Report a bug</a>
+  </div>
+  <div>Built with MelonLoader · © <span id="yr"></span></div>
+</div></footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  const io = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
