@@ -120,17 +120,31 @@ public sealed class ModEntry : MelonMod
         if (_engine != null) return;
         _gameState = new GameStateAdapter(Config);
         _gameClock = new GameClockAdapter();
-        var commands = new GameCommandsAdapter(_gameState);
+        var commands = new GameCommandsAdapter(_gameState, Config);
         var breakers = new ISafetyBreaker[] { new LowFundsBreaker(), new UnpaidRentBreaker(), new EmptyInventoryBreaker() };
         var gate = new SafetyGate(breakers);
-        var managers = new IAutomationManager[] { new RestockManager() };
+        // Engine runs them in priority order: Finance(10) -> Logistics(20) -> Restock(30) -> Employee(40).
+        var managers = new IAutomationManager[]
+        {
+            new FinanceManager(),
+            new LogisticsManager(),
+            new RestockManager(),
+            new EmployeeManager(),
+        };
         _engine = new OrchestrationEngine(managers, gate, commands, new ModLogger());
     }
 
-    /// <summary>Runs one safety-gated automation tick (restock etc.). Called on the in-game day boundary.</summary>
-    internal void RunAutomation(string trigger, bool ignoreMaster = false)
+    /// <summary>Runs one safety-gated automation pass (finance/logistics/restock/employees). Called on
+    /// the in-game day boundary and by the panel's "run now" button. The master switch is required for
+    /// both paths — the engine enforces it too — so "master OFF = the mod does nothing" always holds.</summary>
+    internal void RunAutomation(string trigger)
     {
-        if (!ignoreMaster && !Config.MasterEnabled) return;
+        if (!Config.MasterEnabled)
+        {
+            if (trigger == "manual")
+                Diagnostics.Activity.Add("Enable AUTOMATION (MASTER) first");
+            return;
+        }
         try
         {
             EnsureEngine();

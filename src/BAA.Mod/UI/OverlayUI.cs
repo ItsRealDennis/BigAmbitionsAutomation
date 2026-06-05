@@ -11,7 +11,7 @@ namespace BAA.Mod.UI;
 /// </summary>
 internal sealed class OverlayUI
 {
-    private const float W = 380f, H = 716f, X = 24f, Y = 24f, Pad = 16f;
+    private const float W = 380f, H = 770f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
 
     /// <summary>Screen rect of the panel in GUI space (origin top-left) — used to block click-through.</summary>
@@ -27,7 +27,7 @@ internal sealed class OverlayUI
     private static readonly Color Dim = new(0.68f, 0.74f, 0.82f);
 
     private bool _built;
-    private GUIStyle _panel, _inset, _title, _sub, _value, _label, _section, _logline, _pill, _pillOn, _footer;
+    private GUIStyle _panel, _inset, _title, _sub, _subWarn, _value, _label, _section, _logline, _pill, _pillOn, _footer;
     private GUIStyle _btnBlue, _btnGreen, _btnDark, _swOn, _swOff, _tipBg, _tipStyle;
     private string _tip;
     private Vector2 _tipAt;
@@ -51,7 +51,7 @@ internal sealed class OverlayUI
         cy += 24;
 
         // --- Live status ---
-        GUI.Box(new Rect(ix, cy, iw, 74), "", _inset);
+        GUI.Box(new Rect(ix, cy, iw, 92), "", _inset);
         if (s.HasSave)
         {
             GUI.Label(new Rect(ix + 14, cy + 8, iw - 28, 24), $"${s.Money:N0}", _value);
@@ -59,12 +59,15 @@ internal sealed class OverlayUI
                 $"{Loc.T("DAY")} {s.Day}   {s.Hour:00}:{(int)s.Minute:00}   •   {Loc.T("NET")} ${s.NetWorth:N0}", _sub);
             GUI.Label(new Rect(ix + 14, cy + 52, iw - 28, 16),
                 $"{Loc.T("Shops")} {s.PlayerBusinesses}   •   {Loc.T("Energy")} {s.Energy:0}   •   {Loc.T("Happy")} {s.Happiness:0}", _sub);
+            var taxStyle = s.TaxDue > 0f ? _subWarn : _sub;
+            GUI.Label(new Rect(ix + 14, cy + 70, iw - 28, 16),
+                $"{Loc.T("Tax due")} ${s.TaxDue:N0}   •   {Loc.T("Loans")} {s.Loans}   •   {Loc.T("Staff")} {s.Employees}", taxStyle);
         }
         else
         {
-            GUI.Label(new Rect(ix + 14, cy + 26, iw - 28, 22), Loc.T("NO SAVE LOADED"), _value);
+            GUI.Label(new Rect(ix + 14, cy + 34, iw - 28, 22), Loc.T("NO SAVE LOADED"), _value);
         }
-        cy += 74 + 14;
+        cy += 92 + 14;
 
         // --- Quick actions ---
         GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("QUICK ACTIONS"), _section);
@@ -78,20 +81,21 @@ internal sealed class OverlayUI
         float hw = (iw - 8) / 2f;
         if (Button(new Rect(ix, cy, hw, 26), Loc.T("SCAN SHOPS"), _btnDark, "Lists each of your businesses and its current stock in the activity log."))
             ShopProbe.ScanAndLog();
-        if (Button(new Rect(ix + hw + 8, cy, hw, 26), Loc.T("RUN RESTOCK"), _btnDark, "Run a restock pass now (preview). Enable Auto-restock first; respects your reserve floor."))
-            ModEntry.Instance?.RunAutomation("manual", true);
+        if (Button(new Rect(ix + hw + 8, cy, hw, 26), Loc.T("RUN NOW"), _btnDark, "Runs one automation pass now. Turn on AUTOMATION (MASTER) and the features you want first. Previews unless Live mode is on; respects your reserve floor."))
+            ModEntry.Instance?.RunAutomation("manual");
         cy += 26 + 14;
 
         // --- Features (custom ON/OFF switches) ---
         GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("FEATURES"), _section);
         cy += 18;
         cfg.MasterEnabled = SwitchRow(ix, ref cy, iw, "AUTOMATION (MASTER)", cfg.MasterEnabled, false, "Master switch. Must be ON for anything below to run. Off = the mod does nothing.");
-        cfg.RestockEnabled = SwitchRow(ix, ref cy, iw, "AUTO-RESTOCK", cfg.RestockEnabled, true, "Keeps shops stocked: buys products back up to target when shelves run low. (Coming soon)");
-        cfg.LogisticsEnabled = SwitchRow(ix, ref cy, iw, "LOGISTICS", cfg.LogisticsEnabled, true, "Auto-sets warehouse-to-store deliveries and repeating supplier imports. (Coming soon)");
-        cfg.EmployeesEnabled = SwitchRow(ix, ref cy, iw, "EMPLOYEES", cfg.EmployeesEnabled, true, "Recruits staff and manages wages, schedules and training. (Coming soon)");
-        cfg.FinanceEnabled = SwitchRow(ix, ref cy, iw, "FINANCE AUTO-PAY", cfg.FinanceEnabled, true, "Collects income and pays rent, bills and loans automatically. (Coming soon)");
+        cfg.FinanceEnabled = SwitchRow(ix, ref cy, iw, "FINANCE AUTO-PAY", cfg.FinanceEnabled, true, "Auto-pays your taxes the moment they come due — the one finance chore the game won't do for you. Rent, wages and loans already settle nightly. Respects your reserve floor.");
+        cfg.EmployeesEnabled = SwitchRow(ix, ref cy, iw, "EMPLOYEES", cfg.EmployeesEnabled, true, "Keeps staff productive: pays a morale bonus to unhappy employees when the game allows one, and finishes completed training.");
+        cfg.LogisticsEnabled = SwitchRow(ix, ref cy, iw, "LOGISTICS", cfg.LogisticsEnabled, true, "Sets up a repeating weekly import for any product running low so stock keeps flowing without manual reordering.");
+        cfg.RestockEnabled = SwitchRow(ix, ref cy, iw, "AUTO-RESTOCK", cfg.RestockEnabled, true, "Buys products back up to target when shelves run low. Previews until a verified per-item buy call lands.");
         cfg.TimeSkipEnabled = SwitchRow(ix, ref cy, iw, "TIME-SKIP (AFK)", cfg.TimeSkipEnabled, true, "Fast-forwards in-game time while your businesses keep earning. Turn off for normal speed.");
-        cfg.WellbeingEnabled = SwitchRow(ix, ref cy, iw, "AUTO-WELLBEING", cfg.WellbeingEnabled, true, "Automatically refills your energy so you never stop to sleep or eat.");
+        cfg.WellbeingEnabled = SwitchRow(ix, ref cy, iw, "AUTO-WELLBEING", cfg.WellbeingEnabled, true, "Automatically refills your energy (and tops up happiness) so you never stop to sleep or eat.");
+        cfg.LiveWrites = SwitchRow(ix, ref cy, iw, "LIVE MODE", cfg.LiveWrites, false, "OFF (default) = automation only PREVIEWS what it would do (safe). ON = it actually pays taxes and gives bonuses. Turn on only while watching the game.");
         cy += 8;
 
         // --- Reserve floor ---
@@ -126,7 +130,7 @@ internal sealed class OverlayUI
         }
 
         // Footer
-        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.3.0     •     {Loc.T("F8 to toggle")}", _footer);
+        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.4.0     •     {Loc.T("F8 to toggle")}", _footer);
 
         DrawTooltip();
     }
@@ -209,6 +213,7 @@ internal sealed class OverlayUI
 
         _title = Text(22, White, FontStyle.Bold);
         _sub = Text(11, Dim, FontStyle.Bold);
+        _subWarn = Text(11, new Color(0.98f, 0.74f, 0.36f), FontStyle.Bold); // amber: highlights tax due
         _value = Text(20, White, FontStyle.Bold);
         _label = Text(13, White, FontStyle.Bold);
         _section = Text(11, Dim, FontStyle.Bold);

@@ -27,7 +27,10 @@ public sealed class OrchestrationEngine
 
     public void Tick(IGameState state, IGameClock clock, AutomationConfig config)
     {
-        if (!state.IsWorldReady())
+        // Master switch is the single source of truth: off = the engine does nothing, no matter how it
+        // was triggered (daily tick or the panel's "run now" button). Each manager additionally gates
+        // on its own feature flag, so master ON still does nothing until a feature is enabled too.
+        if (!config.MasterEnabled || !state.IsWorldReady())
             return;
 
         foreach (var manager in _managers)
@@ -46,7 +49,12 @@ public sealed class OrchestrationEngine
 
             foreach (var action in decision.Approved)
             {
-                var result = action.Apply(_commands);
+                // Defense in depth: the adapter contract says commands never throw, but a buggy or
+                // future command must not abort the rest of the tick (or escape into the game).
+                CommandResult result;
+                try { result = action.Apply(_commands); }
+                catch (Exception ex) { result = CommandResult.Failed(ex.Message); }
+
                 if (result.Outcome == CommandOutcome.Failed)
                     _logger.Error($"Action failed [{action.Description}]: {result.Reason}");
             }

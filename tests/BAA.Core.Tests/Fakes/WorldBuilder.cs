@@ -30,5 +30,31 @@ public sealed class WorldBuilder
         return this;
     }
 
+    public WorldBuilder Tax(decimal due)
+    {
+        _world.TaxDue = due;
+        return this;
+    }
+
+    public WorldBuilder Employee(string businessId, string id, string name = "Staff",
+        float satisfaction = 1f, bool bonusReady = false, decimal bonusCost = 0m, bool trainingComplete = false)
+    {
+        var bid = new BusinessId(businessId);
+        if (!_world.Employees.ContainsKey(bid))
+            _world.Employees[bid] = new List<EmployeeInfo>();
+        _world.Employees[bid].Add(new EmployeeInfo(
+            new EmployeeId(id), name, "Cashier", 12m, satisfaction, 30, 0.5f, bid,
+            bonusReady, trainingComplete, bonusCost));
+        return this;
+    }
+
+    public WorldBuilder ImportContract(string item, int quantity = 10, string supplier = "Wholesaler")
+    {
+        _world.ImportContracts.Add(new ImportContractInfo(
+            new ImportContractId("ic" + _world.ImportContracts.Count),
+            new ItemId(item), quantity, DeliveryFrequency.Weekly, supplier));
+        return this;
+    }
+
     public FakeGameState Build() => _world;
 }

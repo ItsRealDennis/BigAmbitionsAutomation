@@ -22,11 +22,14 @@ public interface IGameCommands
     CommandResult SetWage(EmployeeId employee, decimal wage);
     CommandResult SetSchedule(EmployeeId employee, ScheduleSpec schedule);
     CommandResult SetHealthPlan(EmployeeId employee, bool enabled);
+    CommandResult GiveBonus(EmployeeId employee);
+    CommandResult FinishTraining(EmployeeId employee);
 
     // --- Finance ---
     CommandResult PayRent(BusinessId business);
     CommandResult CollectIncome(BusinessId business);
     CommandResult PayLoanInstallment(LoanId loan);
+    CommandResult PayTaxes(decimal amount);
 
     // --- Time ---
     CommandResult SetTimeSpeed(float multiplier);

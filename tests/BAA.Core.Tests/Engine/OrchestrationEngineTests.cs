@@ -24,7 +24,7 @@ public class OrchestrationEngineTests
             }));
         var restock = new RestockManager();
 
-        var config = new AutomationConfig { RestockEnabled = true, CashReserveFloor = 10m };
+        var config = new AutomationConfig { MasterEnabled = true, RestockEnabled = true, CashReserveFloor = 10m };
         var engine = new OrchestrationEngine(
             new IAutomationManager[] { restock, finance }, // intentionally out of priority order
             NoBreakers(), commands, new NullLogger());
@@ -51,7 +51,7 @@ public class OrchestrationEngineTests
         var engine = new OrchestrationEngine(
             new IAutomationManager[] { new RestockManager() }, gate, commands, new NullLogger());
 
-        engine.Tick(world, new FakeGameClock(), new AutomationConfig { RestockEnabled = true });
+        engine.Tick(world, new FakeGameClock(), new AutomationConfig { MasterEnabled = true, RestockEnabled = true });
 
         Assert.Empty(commands.Calls);
         Assert.Equal(100m, world.Cash);
@@ -67,8 +67,46 @@ public class OrchestrationEngineTests
         var engine = new OrchestrationEngine(
             new IAutomationManager[] { new RestockManager() }, NoBreakers(), commands, new NullLogger());
 
-        engine.Tick(world, new FakeGameClock(), new AutomationConfig { RestockEnabled = true });
+        engine.Tick(world, new FakeGameClock(), new AutomationConfig { MasterEnabled = true, RestockEnabled = true });
 
         Assert.Empty(commands.Calls);
+    }
+
+    [Fact]
+    public void Does_nothing_when_master_disabled()
+    {
+        var world = WorldBuilder.New().Cash(100m).Business("b1")
+            .Item("b1", "milk", 0, 5, 10, 2m).Build();
+        var commands = new FakeGameCommands(world);
+        var engine = new OrchestrationEngine(
+            new IAutomationManager[] { new RestockManager() }, NoBreakers(), commands, new NullLogger());
+
+        // Feature is on, but the master switch is OFF -> the engine must do nothing.
+        engine.Tick(world, new FakeGameClock(), new AutomationConfig { MasterEnabled = false, RestockEnabled = true });
+
+        Assert.Empty(commands.Calls);
+        Assert.Equal(100m, world.Cash);
+    }
+
+    [Fact]
+    public void A_throwing_command_does_not_abort_the_rest_of_the_tick()
+    {
+        var b1 = new BusinessId("b1");
+        var world = WorldBuilder.New().Cash(1000m).Business("b1").Build();
+        var commands = new FakeGameCommands(world);
+
+        // First action throws; second must still run.
+        var thrower = new FakeManager(ManagerPriority.Finance, _ => new ActionPlan(new[]
+        {
+            new PlannedAction(ManagerPriority.Finance, "boom", 0m, b1,
+                _ => throw new InvalidOperationException("kaboom")),
+            new PlannedAction(ManagerPriority.Finance, "ok", 0m, b1, c => c.CollectIncome(b1)),
+        }));
+        var engine = new OrchestrationEngine(
+            new IAutomationManager[] { thrower }, NoBreakers(), commands, new NullLogger());
+
+        engine.Tick(world, new FakeGameClock(), new AutomationConfig { MasterEnabled = true });
+
+        Assert.Contains("CollectIncome(b1)", commands.Calls);
     }
 }

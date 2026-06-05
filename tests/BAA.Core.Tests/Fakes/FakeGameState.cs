@@ -12,6 +12,8 @@ public sealed class FakeGameState : IGameState
     public decimal RentDue { get; set; }
     public decimal BillsDue { get; set; }
     public decimal LoanDue { get; set; }
+    public decimal TaxDue { get; set; }
+    public decimal NetWorth { get; set; }
     public bool AnyRentOverdue { get; set; }
     public GameTimeInfo Time { get; set; } = new(2023, 3, 10, 8, 0, DayOfWeek.Friday, 0);
 
@@ -29,7 +31,17 @@ public sealed class FakeGameState : IGameState
 
     public GameTimeInfo GetTime() => Time;
 
-    public FinanceSnapshot GetFinances() => new(Cash, RentDue, BillsDue, LoanDue, AnyRentOverdue);
+    public FinanceSnapshot GetFinances() => new(Cash, RentDue, BillsDue, LoanDue, AnyRentOverdue, TaxDue, NetWorth);
+
+    /// <summary>Find an employee across all businesses by id (used by FakeGameCommands to cost a bonus).</summary>
+    public EmployeeInfo? FindEmployee(EmployeeId id)
+    {
+        foreach (var list in Employees.Values)
+            foreach (var e in list)
+                if (e.Id == id)
+                    return e;
+        return null;
+    }
 
     public IReadOnlyList<BusinessInfo> GetBusinesses() => Businesses;
 

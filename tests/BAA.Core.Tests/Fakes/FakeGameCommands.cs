@@ -72,6 +72,17 @@ public sealed class FakeGameCommands : IGameCommands
     public CommandResult SetHealthPlan(EmployeeId employee, bool enabled)
         => Record($"SetHealthPlan({employee},{enabled})");
 
+    public CommandResult GiveBonus(EmployeeId employee)
+    {
+        Calls.Add($"GiveBonus({employee})");
+        var cost = _world.FindEmployee(employee)?.BonusCost ?? 0m;
+        _world.Cash -= cost;
+        return CommandResult.Applied(-cost);
+    }
+
+    public CommandResult FinishTraining(EmployeeId employee)
+        => Record($"FinishTraining({employee})");
+
     // --- Finance (cash effects simulated) ---
 
     public CommandResult PayRent(BusinessId business)
@@ -100,6 +111,14 @@ public sealed class FakeGameCommands : IGameCommands
         _world.Cash -= due;
         _world.LoanDue = 0m;
         return CommandResult.Applied(-due);
+    }
+
+    public CommandResult PayTaxes(decimal amount)
+    {
+        Calls.Add($"PayTaxes({(int)amount})");
+        _world.Cash -= amount;
+        _world.TaxDue = 0m;
+        return CommandResult.Applied(-amount);
     }
 
     // --- Time ---

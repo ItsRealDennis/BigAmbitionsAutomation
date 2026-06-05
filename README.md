@@ -35,9 +35,13 @@ An in-game automation suite for **[Big Ambitions](https://store.steampowered.com
 | 🛡️ | **Click-safe overlay** | Panel clicks never leak into the world (hooked into the game's input layer). |
 | 💾 | **Persistent settings** | Toggles + reserve floor saved across sessions. |
 | 🇩🇰 | **English & Dansk** | Full English/Danish UI — switch in the panel; remembered across sessions. |
+| 🔍 | **Preview-first & safe** | Every money move previews what it would do; flip **Live mode** on only when watching. Reserve floor + safety breakers never crossed. |
+| 💰 | **Finance auto-pay** | Pays your taxes the moment they come due — the one money chore the game won't do for you. Reserve-floor gated. |
+| 👔 | **Employees** | Morale bonus to unhappy staff when the game allows one, and completed training finished automatically. |
+| 🚚 | **Logistics** | Sets up a repeating weekly import for any product running low, so stock keeps flowing. |
 | 📦 | **Auto-restock** *(preview)* | Reads each shop's stock and restocks to target on the daily tick, gated by your reserve floor. |
-| 🚚 | **Logistics & finance** *(soon)* | Warehouse→store delivery, repeating imports, rent & bills, across every business. |
-| 👔 | **Employees** *(soon)* | Recruiting, wages, scheduling, training. |
+
+Automation is **default-OFF** and runs only through a plan → safety-gate → apply pipeline. Money-spending actions **preview** (log what they'd do) until you enable **Live mode** in the panel.
 
 ## ⬇️ Install (players)
 

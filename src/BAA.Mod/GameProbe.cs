@@ -19,6 +19,7 @@ internal struct GameSnapshot
     public int Candidates;
     public int Loans;
     public int ImportPartnerships;
+    public float TaxDue;
 }
 
 /// <summary>
@@ -50,6 +51,7 @@ internal static class GameProbe
             s.Candidates = gi.CandidateEmployeeInstances != null ? gi.CandidateEmployeeInstances.Count : 0;
             s.Loans = gi.Loans != null ? gi.Loans.Count : 0;
             s.ImportPartnerships = gi.importPartnerships != null ? gi.importPartnerships.Count : 0;
+            try { var t = gi.currentUnpaidTaxes; if (t != null) s.TaxDue = t.totalToPay; } catch { }
         }
         catch (System.Exception ex)
         {

@@ -24,6 +24,17 @@ public sealed class AutomationConfig
     /// <summary>Target shelf level each product is restocked up to.</summary>
     public int RestockTarget { get; set; } = 20;
 
+    /// <summary>
+    /// Gate for money-spending / state-changing game writes (auto-pay taxes, staff bonuses, restock).
+    /// <b>Off by default</b>: every such action only previews (logs what it WOULD do) until the player
+    /// turns this on while watching. Cosmetic helpers (energy, happiness, time-skip) ignore this flag.
+    /// </summary>
+    public bool LiveWrites { get; set; }
+
+    /// <summary>Employees below this morale (0–1) get a bonus when the game allows one. Conservative
+    /// default so automation only spends on clearly unhappy staff.</summary>
+    public decimal EmployeeSatisfactionFloor { get; set; } = 0.4m;
+
     /// <summary>UI language code: "en" or "da".</summary>
     public string Language { get; set; } = "en";
 

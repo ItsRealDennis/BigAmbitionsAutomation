@@ -18,6 +18,7 @@ internal sealed class GameStateAdapter : IGameState
     private readonly AutomationConfig _config;
     private readonly Dictionary<BusinessId, BuildingRegistration> _regs = new();
     private readonly Dictionary<BusinessId, Dictionary<ItemId, ItemName>> _items = new();
+    private readonly Dictionary<EmployeeId, Il2CppEntities.EmployeeInstance> _emps = new();
 
     public GameStateAdapter(AutomationConfig config) => _config = config;
 
@@ -35,8 +36,40 @@ internal sealed class GameStateAdapter : IGameState
     public FinanceSnapshot GetFinances()
     {
         var gi = SaveGameManager.Current;
-        decimal cash = gi != null ? (decimal)gi.Money : 0m;
-        return new FinanceSnapshot(cash, 0m, 0m, 0m, false);
+        if (gi == null)
+            return new FinanceSnapshot(0m, 0m, 0m, 0m, false);
+
+        decimal cash = (decimal)gi.Money;
+        decimal netWorth = 0m;
+        try { netWorth = (decimal)gi.NetWorth; } catch { }
+
+        // Loans: sum the outstanding balance and the daily installment the game auto-deducts.
+        decimal loanRemaining = 0m, loanDaily = 0m;
+        try
+        {
+            var loans = gi.Loans;
+            if (loans != null)
+                for (int i = 0; i < loans.Count; i++)
+                {
+                    var loan = loans[i];
+                    try { loanRemaining += (decimal)loan.remainingAmount; } catch { }
+                    try { loanDaily += loan.dailyPayment; } catch { }
+                }
+        }
+        catch { }
+
+        // Unpaid taxes (the one finance chore the player must do by hand).
+        decimal taxDue = 0m;
+        try
+        {
+            var taxes = gi.currentUnpaidTaxes;
+            if (taxes != null)
+                taxDue = (decimal)taxes.totalToPay;
+        }
+        catch { }
+        if (taxDue < 0m) taxDue = 0m;
+
+        return new FinanceSnapshot(cash, 0m, 0m, loanDaily, false, taxDue, netWorth, loanRemaining);
     }
 
     public IReadOnlyList<BusinessInfo> GetBusinesses()
@@ -106,8 +139,58 @@ internal sealed class GameStateAdapter : IGameState
         return false;
     }
 
-    // --- Unused by the restock slice (stubs) ---
-    public IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null) => System.Array.Empty<EmployeeInfo>();
+    /// <summary>
+    /// Live employee roster via EmployeeHelper. Maps each hired employee (candidates excluded) to a flat
+    /// snapshot the EmployeeManager can plan against: morale (normalised to 0–1), whether a bonus is
+    /// available now (the game decides eligibility via CanGiveBonus) and what it would cost. Caches the
+    /// IL2CPP instance by a tick-stable id so the commands adapter can act on the same employee.
+    /// TrainingComplete is left false for now — finishing training live awaits a verified completion check.
+    /// </summary>
+    public IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null)
+    {
+        _emps.Clear();
+        var list = new List<EmployeeInfo>();
+        Il2CppSystem.Collections.Generic.List<Il2CppEntities.EmployeeInstance> all;
+        try { all = Il2CppHelpers.EmployeeHelper.GetEmployeeInstances(); }
+        catch { return list; }
+        if (all == null)
+            return list;
+
+        int idx = 0;
+        for (int i = 0; i < all.Count; i++)
+        {
+            var e = all[i];
+            if (e == null)
+                continue;
+            try { if (e.IsCandidate) continue; } catch { }
+
+            float sat = 1f;
+            try { sat = e.satisfaction; } catch { }
+            if (sat > 1.5f) sat /= 100f; // normalise a 0–100 morale scale to 0–1
+
+            decimal wage = 0m;
+            try { wage = (decimal)e.hourlyWage; } catch { }
+
+            bool bonusReady = false;
+            try { bonusReady = e.CanGiveBonus(); } catch { }
+            decimal bonusCost = 0m;
+            try { bonusCost = (decimal)e.GetBonusAmount(); } catch { }
+
+            string name = "Employee";
+            try { name = e.GetEmployeeNameWithInfo(); } catch { }
+
+            var id = new EmployeeId("e" + idx++);
+            _emps[id] = e;
+            list.Add(new EmployeeInfo(id, name, "Staff", wage, sat, 0, 0f, null, bonusReady, false, bonusCost));
+        }
+        return list;
+    }
+
+    /// <summary>Resolve an EmployeeId decided by the engine back to the live IL2CPP instance.</summary>
+    public bool TryResolveEmployee(EmployeeId id, out Il2CppEntities.EmployeeInstance emp)
+        => _emps.TryGetValue(id, out emp);
+
+    // --- Unused by the current slice (stubs) ---
     public IReadOnlyList<CandidateInfo> GetCandidates() => System.Array.Empty<CandidateInfo>();
     public IReadOnlyList<WarehouseInfo> GetWarehouses() => System.Array.Empty<WarehouseInfo>();
     public IReadOnlyList<ImportContractInfo> GetImportContracts() => System.Array.Empty<ImportContractInfo>();

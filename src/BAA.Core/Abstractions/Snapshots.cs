@@ -19,7 +19,10 @@ public sealed record FinanceSnapshot(
     decimal RentDue,
     decimal BillsDue,
     decimal LoanDue,
-    bool AnyRentOverdue);
+    bool AnyRentOverdue,
+    decimal TaxDue = 0m,
+    decimal NetWorth = 0m,
+    decimal LoanRemaining = 0m);
 
 public sealed record BusinessInfo(
     BusinessId Id,
@@ -47,7 +50,10 @@ public sealed record EmployeeInfo(
     float Satisfaction,
     int Age,
     float Skill,
-    BusinessId? Assignment);
+    BusinessId? Assignment,
+    bool BonusReady = false,
+    bool TrainingComplete = false,
+    decimal BonusCost = 0m);
 
 public sealed record CandidateInfo(
     CandidateId Id,
