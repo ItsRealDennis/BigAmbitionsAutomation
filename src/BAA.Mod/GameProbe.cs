@@ -14,6 +14,7 @@ internal struct GameSnapshot
     public float Energy;
     public float Happiness;
     public int CityBuildings;
+    public int PlayerBusinesses;
     public int Employees;
     public int Candidates;
     public int Loans;
@@ -44,6 +45,7 @@ internal static class GameProbe
             s.Energy = gi.Energy;
             s.Happiness = gi.Happiness;
             s.CityBuildings = gi.BuildingRegistrations != null ? gi.BuildingRegistrations.Count : 0;
+            s.PlayerBusinesses = CountPlayerBusinesses(gi);
             s.Employees = gi.EmployeeInstances != null ? gi.EmployeeInstances.Count : 0;
             s.Candidates = gi.CandidateEmployeeInstances != null ? gi.CandidateEmployeeInstances.Count : 0;
             s.Loans = gi.Loans != null ? gi.Loans.Count : 0;
@@ -54,6 +56,22 @@ internal static class GameProbe
             ModEntry.Log?.Warning($"probe read failed: {ex.Message}");
         }
         return s;
+    }
+
+    private static int CountPlayerBusinesses(Il2Cpp.GameInstance gi)
+    {
+        var regs = gi.BuildingRegistrations;
+        if (regs == null) return 0;
+        int n = 0;
+        for (int i = 0; i < regs.Count; i++)
+        {
+            var r = regs[i];
+            bool mine = false;
+            try { mine = r.RentedByPlayer || r.BuildingOwnedByPlayer; } catch { }
+            if (!mine) continue;
+            try { var sale = r.GetListOfItemsForSale(); if (sale != null && sale.Count > 0) n++; } catch { }
+        }
+        return n;
     }
 
     public static void LogSnapshot(string tag)

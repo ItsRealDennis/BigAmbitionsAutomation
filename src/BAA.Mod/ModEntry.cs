@@ -76,9 +76,17 @@ public sealed class ModEntry : MelonMod
     /// <summary>Auto-wellbeing: refill energy when it dips, so the player never has to stop to sleep.</summary>
     private void MaybeRefillEnergy()
     {
-        if (Config.MasterEnabled && Config.WellbeingEnabled && _snapshot.HasSave && _snapshot.Energy < 30f && _sinceRefill > 15f)
+        if (!(Config.MasterEnabled && Config.WellbeingEnabled && _snapshot.HasSave) || _sinceRefill <= 15f)
+            return;
+        if (_snapshot.Energy < 30f)
         {
             GameActions.RefillEnergy();
+            _sinceRefill = 0f;
+        }
+        else if (_snapshot.Happiness < 30f)
+        {
+            GameActions.BoostHappiness(50);
+            Diagnostics.Activity.Add("Happiness boosted");
             _sinceRefill = 0f;
         }
     }
@@ -120,9 +128,9 @@ public sealed class ModEntry : MelonMod
     }
 
     /// <summary>Runs one safety-gated automation tick (restock etc.). Called on the in-game day boundary.</summary>
-    internal void RunAutomation(string trigger)
+    internal void RunAutomation(string trigger, bool ignoreMaster = false)
     {
-        if (!Config.MasterEnabled) return;
+        if (!ignoreMaster && !Config.MasterEnabled) return;
         try
         {
             EnsureEngine();

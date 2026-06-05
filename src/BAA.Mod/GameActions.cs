@@ -29,6 +29,12 @@ internal static class GameActions
         catch (System.Exception ex) { ModEntry.Log?.Warning($"RefillEnergy failed: {ex.Message}"); }
     }
 
+    public static void BoostHappiness(int amount)
+    {
+        try { GameManager.Command_ChangeHappiness(amount); }
+        catch (System.Exception ex) { ModEntry.Log?.Warning($"BoostHappiness failed: {ex.Message}"); }
+    }
+
     public static float GetTimeMultiplier()
     {
         try { return GameManager.MinutesMultiplier; }

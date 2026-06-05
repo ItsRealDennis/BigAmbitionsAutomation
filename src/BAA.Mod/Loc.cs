@@ -31,6 +31,12 @@ internal static class Loc
         ["NET"] = "NETTO",
         ["RESERVE FLOOR"] = "RESERVEGRÆNSE",
         ["F8 to toggle"] = "F8 skifter",
+        ["Shops"] = "Butikker",
+        ["Energy"] = "Energi",
+        ["Happy"] = "Glad",
+        ["SCAN SHOPS"] = "SCAN BUTIKKER",
+        ["RUN RESTOCK"] = "KØR GENOPFYLD",
+        ["RESTOCK TARGET"] = "GENOPFYLD MÅL",
 
         // Feature names
         ["AUTOMATION (MASTER)"] = "AUTOMATION (HOVED)",
@@ -64,5 +70,11 @@ internal static class Loc
             = "Genopfylder automatisk din energi, så du aldrig stopper for at sove eller spise.",
         ["Automation never spends below this cash cushion. Use the minus / plus buttons to adjust."]
             = "Automatisering bruger aldrig under denne kontantbuffer. Brug minus / plus-knapperne for at justere.",
+        ["Lists each of your businesses and its current stock in the activity log."]
+            = "Viser hver af dine virksomheder og dens nuværende lager i aktivitetsloggen.",
+        ["Run a restock pass now (preview). Enable Auto-restock first; respects your reserve floor."]
+            = "Kør en genopfyldning nu (forhåndsvisning). Aktivér Auto-genopfyld først; respekterer din reservegrænse.",
+        ["Auto-restock fills each product up to this many units."]
+            = "Auto-genopfyld fylder hver vare op til så mange enheder.",
     };
 }

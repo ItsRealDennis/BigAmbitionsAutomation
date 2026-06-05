@@ -11,7 +11,7 @@ namespace BAA.Mod.UI;
 /// </summary>
 internal sealed class OverlayUI
 {
-    private const float W = 380f, H = 664f, X = 24f, Y = 24f, Pad = 16f;
+    private const float W = 380f, H = 716f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
 
     /// <summary>Screen rect of the panel in GUI space (origin top-left) — used to block click-through.</summary>
@@ -51,18 +51,20 @@ internal sealed class OverlayUI
         cy += 24;
 
         // --- Live status ---
-        GUI.Box(new Rect(ix, cy, iw, 58), "", _inset);
+        GUI.Box(new Rect(ix, cy, iw, 74), "", _inset);
         if (s.HasSave)
         {
             GUI.Label(new Rect(ix + 14, cy + 8, iw - 28, 24), $"${s.Money:N0}", _value);
-            GUI.Label(new Rect(ix + 14, cy + 34, iw - 28, 16),
+            GUI.Label(new Rect(ix + 14, cy + 33, iw - 28, 16),
                 $"{Loc.T("DAY")} {s.Day}   {s.Hour:00}:{(int)s.Minute:00}   •   {Loc.T("NET")} ${s.NetWorth:N0}", _sub);
+            GUI.Label(new Rect(ix + 14, cy + 52, iw - 28, 16),
+                $"{Loc.T("Shops")} {s.PlayerBusinesses}   •   {Loc.T("Energy")} {s.Energy:0}   •   {Loc.T("Happy")} {s.Happiness:0}", _sub);
         }
         else
         {
-            GUI.Label(new Rect(ix + 14, cy + 18, iw - 28, 22), Loc.T("NO SAVE LOADED"), _value);
+            GUI.Label(new Rect(ix + 14, cy + 26, iw - 28, 22), Loc.T("NO SAVE LOADED"), _value);
         }
-        cy += 58 + 14;
+        cy += 74 + 14;
 
         // --- Quick actions ---
         GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("QUICK ACTIONS"), _section);
@@ -73,8 +75,11 @@ internal sealed class OverlayUI
         if (Button(new Rect(ix + bw + 8, cy, bw, 30), Loc.T("ENERGY 100%"), _btnGreen, "Instantly refill your energy to full."))
             GameActions.RefillEnergy();
         cy += 30 + 8;
-        if (Button(new Rect(ix, cy, iw, 26), Loc.T("SCAN MY BUSINESSES"), _btnDark, "Lists each of your businesses and its current stock in the activity log (and MelonLoader console)."))
+        float hw = (iw - 8) / 2f;
+        if (Button(new Rect(ix, cy, hw, 26), Loc.T("SCAN SHOPS"), _btnDark, "Lists each of your businesses and its current stock in the activity log."))
             ShopProbe.ScanAndLog();
+        if (Button(new Rect(ix + hw + 8, cy, hw, 26), Loc.T("RUN RESTOCK"), _btnDark, "Run a restock pass now (preview). Enable Auto-restock first; respects your reserve floor."))
+            ModEntry.Instance?.RunAutomation("manual", true);
         cy += 26 + 14;
 
         // --- Features (custom ON/OFF switches) ---
@@ -98,6 +103,15 @@ internal sealed class OverlayUI
             cfg.CashReserveFloor += ReserveStep;
         cy += 36;
 
+        // --- Restock target ---
+        GUI.Label(new Rect(ix, cy + 5, iw - 76, 20), $"{Loc.T("RESTOCK TARGET")}  {cfg.RestockTarget}", _label);
+        TipIf(new Rect(ix, cy, iw - 76, 26), "Auto-restock fills each product up to this many units.");
+        if (Button(new Rect(ix + iw - 68, cy, 30, 26), "−", _btnDark))
+            cfg.RestockTarget = System.Math.Max(1, cfg.RestockTarget - 5);
+        if (Button(new Rect(ix + iw - 32, cy, 30, 26), "+", _btnDark))
+            cfg.RestockTarget += 5;
+        cy += 36;
+
         // --- Activity log ---
         GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("ACTIVITY"), _section);
         cy += 18;
@@ -112,7 +126,7 @@ internal sealed class OverlayUI
         }
 
         // Footer
-        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.2.0     •     {Loc.T("F8 to toggle")}", _footer);
+        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.3.0     •     {Loc.T("F8 to toggle")}", _footer);
 
         DrawTooltip();
     }
