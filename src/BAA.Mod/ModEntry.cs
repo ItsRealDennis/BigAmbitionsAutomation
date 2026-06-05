@@ -35,6 +35,7 @@ public sealed class ModEntry : MelonMod
 
     private bool _fastActive;
     private float _savedMultiplier = 1f;
+    private float _sinceRefill = 99f;
     private bool _drawFaulted;
 
     private OrchestrationEngine _engine;
@@ -54,6 +55,7 @@ public sealed class ModEntry : MelonMod
     public override void OnUpdate()
     {
         _refreshTimer += Time.deltaTime;
+        _sinceRefill += Time.deltaTime;
         if (_refreshTimer >= 1f)
         {
             _refreshTimer = 0f;
@@ -74,8 +76,11 @@ public sealed class ModEntry : MelonMod
     /// <summary>Auto-wellbeing: refill energy when it dips, so the player never has to stop to sleep.</summary>
     private void MaybeRefillEnergy()
     {
-        if (Config.MasterEnabled && Config.WellbeingEnabled && _snapshot.HasSave && _snapshot.Energy < 30f)
+        if (Config.MasterEnabled && Config.WellbeingEnabled && _snapshot.HasSave && _snapshot.Energy < 30f && _sinceRefill > 15f)
+        {
             GameActions.RefillEnergy();
+            _sinceRefill = 0f;
+        }
     }
 
     /// <summary>Fast-forwards in-game time while Time-skip is on; restores the original speed when off.</summary>
@@ -152,8 +157,8 @@ public sealed class ModEntry : MelonMod
         {
             if (!_drawFaulted)
             {
-                _drawFaulted = true; // log once, never spam
-                Log?.Error($"overlay draw failed (disabled): {ex}");
+                _drawFaulted = true; // log only once; Draw still retries each frame so transient faults recover
+                Log?.Error($"overlay draw failed (will retry): {ex}");
             }
         }
     }

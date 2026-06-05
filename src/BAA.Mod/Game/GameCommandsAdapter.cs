@@ -31,19 +31,16 @@ internal sealed class GameCommandsAdapter : IGameCommands
 
         Diagnostics.Activity.Add($"{(LiveWrites ? "Restock" : "[preview] restock")} {quantity}x {name}  ~${unitCost * quantity:N0}");
 
+        // DRY-RUN (default): report the intended spend so the safety gate's within-tick budget is
+        // realistic, but change nothing in the game.
         if (!LiveWrites)
-            return CommandResult.Applied(spend); // dry-run: report the delta so budgeting is realistic
-
-        // LIVE path (enabled after verifying the fill call against a real shop).
-        try
-        {
-            Il2CppHelpers.BuildingHelper.FillItemWithStock(reg, quantity, null);
             return CommandResult.Applied(spend);
-        }
-        catch (System.Exception ex)
-        {
-            return CommandResult.Failed("fill failed: " + ex.Message);
-        }
+
+        // LIVE path is intentionally NOT wired yet: BuildingHelper.FillItemWithStock(reg, amount,
+        // CargoInstance) takes no ItemName and needs a real CargoInstance source, so it cannot
+        // target a specific product safely. Until the correct per-item buy call is verified on a
+        // live shop, live restock is a no-op so it can never spend incorrectly.
+        return CommandResult.Skipped("live restock pending verified per-item API");
     }
 
     // --- Other commands: previewed/logged, no game mutation yet (managers wired, write paths pending) ---

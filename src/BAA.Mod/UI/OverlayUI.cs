@@ -112,7 +112,7 @@ internal sealed class OverlayUI
         }
 
         // Footer
-        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.1.0     •     {Loc.T("F8 to toggle")}", _footer);
+        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.2.0     •     {Loc.T("F8 to toggle")}", _footer);
 
         DrawTooltip();
     }

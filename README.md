@@ -34,7 +34,8 @@ An in-game automation suite for **[Big Ambitions](https://store.steampowered.com
 | ❤️‍🩹 | **Auto-wellbeing** | Keeps your energy topped up so you never stop to sleep/eat. |
 | 🛡️ | **Click-safe overlay** | Panel clicks never leak into the world (hooked into the game's input layer). |
 | 💾 | **Persistent settings** | Toggles + reserve floor saved across sessions. |
-| 📦 | **Auto-restock** *(soon)* | Detects empty shelves and buys stock back to target. |
+| 🇩🇰 | **English & Dansk** | Full English/Danish UI — switch in the panel; remembered across sessions. |
+| 📦 | **Auto-restock** *(preview)* | Reads each shop's stock and restocks to target on the daily tick, gated by your reserve floor. |
 | 🚚 | **Logistics & finance** *(soon)* | Warehouse→store delivery, repeating imports, rent & bills, across every business. |
 | 👔 | **Employees** *(soon)* | Recruiting, wages, scheduling, training. |
 
