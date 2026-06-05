@@ -14,6 +14,12 @@ An in-game automation suite for **[Big Ambitions](https://store.steampowered.com
 ![made with](https://img.shields.io/badge/C%23-net6.0-blueviolet)
 ![price](https://img.shields.io/badge/price-free%20%26%20open--source-54dc8e)
 
+<br>
+
+<img src="docs/img/hero.png" alt="BA BOT — in-game automation control panel for Big Ambitions" width="840" />
+
+<sub>Hover any toggle in-game for a tooltip explaining what it does.</sub>
+
 </div>
 
 ---

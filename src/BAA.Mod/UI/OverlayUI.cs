@@ -27,13 +27,16 @@ internal sealed class OverlayUI
 
     private bool _built;
     private GUIStyle _panel, _inset, _title, _sub, _value, _label, _section, _logline, _pill, _footer;
-    private GUIStyle _btnBlue, _btnGreen, _btnDark, _swOn, _swOff;
+    private GUIStyle _btnBlue, _btnGreen, _btnDark, _swOn, _swOff, _tipBg, _tipStyle;
+    private string _tip;
+    private Vector2 _tipAt;
 
     public void Draw(AutomationConfig cfg, GameSnapshot s)
     {
         if (!_built)
             Build();
 
+        _tip = null;
         GUI.Box(new Rect(X, Y, W, H), "", _panel);
         float ix = X + Pad, iw = W - 2f * Pad, cy = Y + Pad;
 
@@ -62,26 +65,27 @@ internal sealed class OverlayUI
         GUI.Label(new Rect(ix, cy, iw, 13), "QUICK ACTIONS", _section);
         cy += 18;
         float bw = (iw - 8) / 2f;
-        if (Button(new Rect(ix, cy, bw, 30), "+$1,000", _btnBlue))
+        if (Button(new Rect(ix, cy, bw, 30), "+$1,000", _btnBlue, "Instantly add $1,000 cash. Handy for testing the mod."))
             GameActions.AddMoney(1000f);
-        if (Button(new Rect(ix + bw + 8, cy, bw, 30), "ENERGY 100%", _btnGreen))
+        if (Button(new Rect(ix + bw + 8, cy, bw, 30), "ENERGY 100%", _btnGreen, "Instantly refill your energy to full."))
             GameActions.RefillEnergy();
         cy += 30 + 14;
 
         // --- Features (custom ON/OFF switches) ---
         GUI.Label(new Rect(ix, cy, iw, 13), "FEATURES", _section);
         cy += 18;
-        cfg.MasterEnabled = SwitchRow(ix, ref cy, iw, "AUTOMATION (MASTER)", cfg.MasterEnabled, false);
-        cfg.RestockEnabled = SwitchRow(ix, ref cy, iw, "AUTO-RESTOCK", cfg.RestockEnabled, true);
-        cfg.LogisticsEnabled = SwitchRow(ix, ref cy, iw, "LOGISTICS", cfg.LogisticsEnabled, true);
-        cfg.EmployeesEnabled = SwitchRow(ix, ref cy, iw, "EMPLOYEES", cfg.EmployeesEnabled, true);
-        cfg.FinanceEnabled = SwitchRow(ix, ref cy, iw, "FINANCE AUTO-PAY", cfg.FinanceEnabled, true);
-        cfg.TimeSkipEnabled = SwitchRow(ix, ref cy, iw, "TIME-SKIP (AFK)", cfg.TimeSkipEnabled, true);
-        cfg.WellbeingEnabled = SwitchRow(ix, ref cy, iw, "AUTO-WELLBEING", cfg.WellbeingEnabled, true);
+        cfg.MasterEnabled = SwitchRow(ix, ref cy, iw, "AUTOMATION (MASTER)", cfg.MasterEnabled, false, "Master switch. Must be ON for anything below to run. Off = the mod does nothing.");
+        cfg.RestockEnabled = SwitchRow(ix, ref cy, iw, "AUTO-RESTOCK", cfg.RestockEnabled, true, "Keeps shops stocked: buys products back up to target when shelves run low. (Coming soon)");
+        cfg.LogisticsEnabled = SwitchRow(ix, ref cy, iw, "LOGISTICS", cfg.LogisticsEnabled, true, "Auto-sets warehouse-to-store deliveries and repeating supplier imports. (Coming soon)");
+        cfg.EmployeesEnabled = SwitchRow(ix, ref cy, iw, "EMPLOYEES", cfg.EmployeesEnabled, true, "Recruits staff and manages wages, schedules and training. (Coming soon)");
+        cfg.FinanceEnabled = SwitchRow(ix, ref cy, iw, "FINANCE AUTO-PAY", cfg.FinanceEnabled, true, "Collects income and pays rent, bills and loans automatically. (Coming soon)");
+        cfg.TimeSkipEnabled = SwitchRow(ix, ref cy, iw, "TIME-SKIP (AFK)", cfg.TimeSkipEnabled, true, "Fast-forwards in-game time while your businesses keep earning. Turn off for normal speed.");
+        cfg.WellbeingEnabled = SwitchRow(ix, ref cy, iw, "AUTO-WELLBEING", cfg.WellbeingEnabled, true, "Automatically refills your energy so you never stop to sleep or eat.");
         cy += 8;
 
         // --- Reserve floor ---
         GUI.Label(new Rect(ix, cy + 5, iw - 76, 20), $"RESERVE FLOOR  ${cfg.CashReserveFloor:N0}", _label);
+        TipIf(new Rect(ix, cy, iw - 76, 26), "Automation never spends below this cash cushion. Use the minus / plus buttons to adjust.");
         if (Button(new Rect(ix + iw - 68, cy, 30, 26), "−", _btnDark))
             cfg.CashReserveFloor = System.Math.Max(0m, cfg.CashReserveFloor - ReserveStep);
         if (Button(new Rect(ix + iw - 32, cy, 30, 26), "+", _btnDark))
@@ -103,11 +107,13 @@ internal sealed class OverlayUI
 
         // Footer
         GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), "BA BOT  v0.1.0     •     F8 to toggle", _footer);
+
+        DrawTooltip();
     }
 
     // --- Custom controls (Box + Label + manual hit-test) ---
 
-    private bool SwitchRow(float x, ref float cy, float w, string label, bool value, bool indent)
+    private bool SwitchRow(float x, ref float cy, float w, string label, bool value, bool indent, string tip)
     {
         float lx = x + (indent ? 16 : 0);
         var row = new Rect(x, cy, w, 26);
@@ -116,14 +122,37 @@ internal sealed class OverlayUI
         var pill = new Rect(x + w - 50, cy + 2, 48, 22);
         GUI.Box(pill, value ? "ON" : "OFF", value ? _swOn : _swOff);
 
+        TipIf(row, tip);
         cy += 28;
         return Clicked(row) ? !value : value;
     }
 
-    private bool Button(Rect r, string label, GUIStyle style)
+    private bool Button(Rect r, string label, GUIStyle style, string tip = null)
     {
         GUI.Box(r, label, style);
+        TipIf(r, tip);
         return Clicked(r);
+    }
+
+    private void TipIf(Rect r, string tip)
+    {
+        if (string.IsNullOrEmpty(tip)) return;
+        var e = Event.current;
+        if (e != null && r.Contains(e.mousePosition)) { _tip = tip; _tipAt = e.mousePosition; }
+    }
+
+    private void DrawTooltip()
+    {
+        if (string.IsNullOrEmpty(_tip)) return;
+        int lines = Mathf.Max(1, Mathf.CeilToInt(_tip.Length / 34f));
+        float tw = 230f, th = lines * 16f + 14f;
+        float tx = _tipAt.x + 16f, ty = _tipAt.y + 18f;
+        if (tx + tw + 12f > Screen.width) tx = _tipAt.x - tw - 16f;
+        if (ty + th + 10f > Screen.height) ty = Screen.height - th - 12f;
+        if (tx < 4f) tx = 4f;
+        if (ty < 4f) ty = 4f;
+        GUI.Box(new Rect(tx, ty, tw, th), "", _tipBg);
+        GUI.Label(new Rect(tx + 10f, ty + 7f, tw - 20f, th - 12f), _tip, _tipStyle);
     }
 
     private static bool Clicked(Rect r)
@@ -152,6 +181,9 @@ internal sealed class OverlayUI
         _logline = Text(11, Dim);
         _footer = Text(10, new Color(0.46f, 0.52f, 0.62f));
         _footer.alignment = TextAnchor.MiddleCenter;
+        _tipBg = Rounded(new Color(0.03f, 0.04f, 0.07f, 0.98f), 8);
+        _tipStyle = Text(12, new Color(0.90f, 0.93f, 0.97f));
+        _tipStyle.wordWrap = true;
 
         _btnBlue = ButtonStyle(Blue);
         _btnGreen = ButtonStyle(Green);

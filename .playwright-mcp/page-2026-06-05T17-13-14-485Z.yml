@@ -1,0 +1,195 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: BA
+        - text: BA BOT
+      - generic [ref=e6]:
+        - link "Features" [ref=e7] [cursor=pointer]:
+          - /url: "#features"
+        - link "Install" [ref=e8] [cursor=pointer]:
+          - /url: "#install"
+        - link "Safety" [ref=e9] [cursor=pointer]:
+          - /url: "#safety"
+        - link "GitHub" [ref=e10] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation
+        - link "Download" [ref=e11] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest
+  - banner [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]: Free & open-source · v0.1.0
+        - heading "Your Manhattan empire, on autopilot." [level=1] [ref=e17]:
+          - text: Your Manhattan empire,
+          - text: on autopilot.
+        - paragraph [ref=e18]: BA BOT is an in-game automation suite for Big Ambitions. Skip the grind — restocking, daily upkeep, errands and AFK time-skip — all from one sleek control panel that lives inside the game. Press F8 and run the empire while you live the life.
+        - generic [ref=e19]:
+          - link "↓ Download for free" [ref=e20] [cursor=pointer]:
+            - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest
+          - link "See what it does" [ref=e21] [cursor=pointer]:
+            - /url: "#features"
+        - paragraph [ref=e22]: Windows · MelonLoader · one-click installer included
+      - generic [ref=e25]:
+        - generic [ref=e26]: BA BOT
+        - generic [ref=e27]: AUTOMATION CONTROL
+        - generic [ref=e28]:
+          - generic [ref=e29]: $248,500
+          - generic [ref=e30]: DAY 42 · 08:30 · NET $1.2M
+        - generic [ref=e31]: QUICK ACTIONS
+        - generic [ref=e32]:
+          - generic [ref=e33]: +$1,000
+          - generic [ref=e34]: ENERGY 100%
+        - generic [ref=e35]: FEATURES
+        - generic [ref=e36]:
+          - generic [ref=e37]: Automation (master)
+          - generic [ref=e38]: "ON"
+        - generic [ref=e39]:
+          - generic [ref=e40]: Auto-restock
+          - generic [ref=e41]: "ON"
+        - generic [ref=e42]:
+          - generic [ref=e43]: Logistics
+          - generic [ref=e44]: "ON"
+        - generic [ref=e45]:
+          - generic [ref=e46]: Time-skip (AFK)
+          - generic [ref=e47]: "OFF"
+        - generic [ref=e48]:
+          - generic [ref=e49]: Auto-wellbeing
+          - generic [ref=e50]: "ON"
+  - generic [ref=e52]:
+    - generic [ref=e53]: MelonLoader + HarmonyLib
+    - generic [ref=e54]: /
+    - generic [ref=e55]: Reads true game state
+    - generic [ref=e56]: /
+    - generic [ref=e57]: Fail-safe by design
+    - generic [ref=e58]: /
+    - generic [ref=e59]: Never touches your save
+    - generic [ref=e60]: /
+    - generic [ref=e61]: Open source
+  - generic [ref=e63]:
+    - generic [ref=e64]:
+      - text: What it does
+      - heading "One panel. Total control of the grind." [level=2] [ref=e65]
+      - paragraph [ref=e66]: Everything runs inside the game with a UI built to match it — no alt-tabbing, no spreadsheets, no fragile screen-reading bots.
+    - generic [ref=e67]:
+      - generic [ref=e68]:
+        - generic [ref=e69]: 🎛️
+        - heading "In-game control panel" [level=3] [ref=e70]
+        - paragraph [ref=e71]: A polished F8 overlay styled to match Big Ambitions — live cash, day & net-worth, with every toggle a tap away.
+      - generic [ref=e72]:
+        - generic [ref=e73]: ⚡
+        - heading "Instant quick-actions" [level=3] [ref=e74]
+        - paragraph [ref=e75]: One-click +$1,000 and Energy 100%. Useful from the second you spawn — no shop required.
+      - generic [ref=e76]:
+        - generic [ref=e77]: ⏩
+        - heading "Time-skip (AFK)" [level=3] [ref=e78]
+        - paragraph [ref=e79]: Fast-forward the clock while your businesses keep earning. Step away; come back richer.
+      - generic [ref=e80]:
+        - generic [ref=e81]: ❤️‍🩹
+        - heading "Auto-wellbeing" [level=3] [ref=e82]
+        - paragraph [ref=e83]: Keeps energy topped up automatically so you never have to stop the empire to sleep or eat.
+      - generic [ref=e84]:
+        - generic [ref=e85]: 🛡️
+        - heading "Click-safe overlay" [level=3] [ref=e86]
+        - paragraph [ref=e87]: Clicks on the panel never leak into the world — hooked straight into the game's input layer.
+      - generic [ref=e88]:
+        - generic [ref=e89]: 💾
+        - heading "Settings that stick" [level=3] [ref=e90]
+        - paragraph [ref=e91]: Your toggles and reserve floor persist across sessions. Set it once, forget it.
+      - generic [ref=e92]:
+        - generic [ref=e93]: SOON
+        - generic [ref=e94]: 📦
+        - heading "Auto-restock" [level=3] [ref=e95]
+        - paragraph [ref=e96]: "Detects empty shelves and buys stock back to target — the #1 tedium, gone."
+      - generic [ref=e97]:
+        - generic [ref=e98]: SOON
+        - generic [ref=e99]: 🚚
+        - heading "Logistics & finance" [level=3] [ref=e100]
+        - paragraph [ref=e101]: Auto warehouse→store delivery, repeating imports, rent & bills — orchestrated across every business.
+      - generic [ref=e102]:
+        - generic [ref=e103]: SOON
+        - generic [ref=e104]: 👔
+        - heading "Employees" [level=3] [ref=e105]
+        - paragraph [ref=e106]: Recruiting, wages, scheduling and training cycles handled for you.
+  - generic [ref=e108]:
+    - generic [ref=e109]:
+      - text: Get started
+      - heading "Installed in under a minute." [level=2] [ref=e110]
+      - paragraph [ref=e111]: A one-click installer auto-detects your game and drops everything in place.
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - generic [ref=e114]: "1"
+        - heading "Prep the game" [level=3] [ref=e115]
+        - paragraph [ref=e116]: Install MelonLoader into Big Ambitions and launch once. On Windows 11, turn off Smart App Control.
+      - generic [ref=e117]:
+        - generic [ref=e118]: "2"
+        - heading "Run the installer" [level=3] [ref=e119]
+        - paragraph [ref=e120]:
+          - text: Download the release, unzip, and double-click
+          - code [ref=e121]: install.bat
+          - text: . It finds your game and copies the mod.
+      - generic [ref=e122]:
+        - generic [ref=e123]: "3"
+        - heading "Press F8" [level=3] [ref=e124]
+        - paragraph [ref=e125]:
+          - text: Launch the game and hit
+          - code [ref=e126]: F8
+          - text: to open BA BOT. Flip on what you want — done.
+  - generic [ref=e128]:
+    - generic [ref=e129]:
+      - text: Built to fail safe
+      - heading "Automation you can trust to leave running." [level=2] [ref=e130]
+      - list [ref=e131]:
+        - listitem [ref=e132]:
+          - generic [ref=e133]: ✓
+          - generic [ref=e134]:
+            - text: Default-OFF.
+            - paragraph [ref=e135]: A fresh install does nothing until you opt in, feature by feature.
+        - listitem [ref=e136]:
+          - generic [ref=e137]: ✓
+          - generic [ref=e138]:
+            - text: Reserve floor & budget.
+            - paragraph [ref=e139]: It never spends below the cash cushion you set — checked against the whole plan, not one buy at a time.
+        - listitem [ref=e140]:
+          - generic [ref=e141]: ✓
+          - generic [ref=e142]:
+            - text: Safety breakers.
+            - paragraph [ref=e143]: Low funds, unpaid rent or empty inventory halt automation and tell you why.
+        - listitem [ref=e144]:
+          - generic [ref=e145]: ✓
+          - generic [ref=e146]:
+            - text: Never writes your save.
+            - paragraph [ref=e147]: All settings live outside the save file. Uninstall any time and load vanilla, clean.
+    - generic [ref=e153]:
+      - text: // the brain decides before it acts
+      - text: plan = restock.Plan(state)
+      - text: gate = safety.Evaluate(plan)
+      - text: "// reserve floor: $5,000"
+      - text: → buy milk ×8 −$12 ✓
+      - text: → buy steak ×40 // would breach floor ✗
+      - text: apply(gate.Approved) // only safe actions
+      - text: 18/18 unit tests green · save untouched
+  - generic [ref=e155]:
+    - generic [ref=e156]:
+      - heading "Stop running errands. Start running an empire." [level=2] [ref=e157]:
+        - text: Stop running errands.
+        - text: Start running an empire.
+      - paragraph [ref=e158]: Free, open-source, and getting better every week. Grab it and put the grind on autopilot.
+      - generic [ref=e159]:
+        - link "↓ Download BA BOT" [ref=e160] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest
+        - link "★ Star on GitHub" [ref=e161] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation
+    - paragraph [ref=e162]: BA BOT is a fan-made, single-player mod and is not affiliated with or endorsed by Hovgaard Games. Big Ambitions is in Early Access; mod at your own risk and back up your saves.
+  - contentinfo [ref=e163]:
+    - generic [ref=e164]:
+      - generic [ref=e165]:
+        - generic [ref=e166]: BA
+        - text: BA BOT
+      - generic [ref=e167]:
+        - link "GitHub" [ref=e168] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation
+        - link "Download" [ref=e169] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest
+        - link "Report a bug" [ref=e170] [cursor=pointer]:
+          - /url: https://github.com/ItsRealDennis/BigAmbitionsAutomation/issues
+      - generic [ref=e171]: Built with MelonLoader · © 2026
