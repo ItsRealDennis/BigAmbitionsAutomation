@@ -1,4 +1,9 @@
 using BAA.Core.Config;
+using BAA.Core.Engine;
+using BAA.Core.Managers;
+using BAA.Core.Safety;
+using BAA.Core.Safety.Breakers;
+using BAA.Mod.Game;
 using BAA.Mod.UI;
 using MelonLoader;
 using UnityEngine;
@@ -18,6 +23,9 @@ public sealed class ModEntry : MelonMod
     /// <summary>True when the cursor is over the open panel — read by the click-through-blocking patch.</summary>
     internal static bool PointerOverPanel;
 
+    /// <summary>Set in OnInitializeMelon so the static NewDay Harmony patch can drive the engine.</summary>
+    internal static ModEntry Instance;
+
     private const float FastFactor = 8f;
 
     private readonly OverlayUI _overlay = new();
@@ -29,9 +37,14 @@ public sealed class ModEntry : MelonMod
     private float _savedMultiplier = 1f;
     private bool _drawFaulted;
 
+    private OrchestrationEngine _engine;
+    private GameStateAdapter _gameState;
+    private GameClockAdapter _gameClock;
+
     public override void OnInitializeMelon()
     {
         Log = LoggerInstance;
+        Instance = this;
         ModPreferences.Load(Config);
         Log.Msg("================ BA BOT loaded ================");
         Log.Msg($"Settings loaded (master = {Config.MasterEnabled}). Press F8 in-game for the panel.");
@@ -86,6 +99,33 @@ public sealed class ModEntry : MelonMod
             GameActions.SetTimeMultiplier(_savedMultiplier);
             _fastActive = false;
             Diagnostics.Activity.Add("Time-skip OFF");
+        }
+    }
+
+    private void EnsureEngine()
+    {
+        if (_engine != null) return;
+        _gameState = new GameStateAdapter(Config);
+        _gameClock = new GameClockAdapter();
+        var commands = new GameCommandsAdapter(_gameState);
+        var breakers = new ISafetyBreaker[] { new LowFundsBreaker(), new UnpaidRentBreaker(), new EmptyInventoryBreaker() };
+        var gate = new SafetyGate(breakers);
+        var managers = new IAutomationManager[] { new RestockManager() };
+        _engine = new OrchestrationEngine(managers, gate, commands, new ModLogger());
+    }
+
+    /// <summary>Runs one safety-gated automation tick (restock etc.). Called on the in-game day boundary.</summary>
+    internal void RunAutomation(string trigger)
+    {
+        if (!Config.MasterEnabled) return;
+        try
+        {
+            EnsureEngine();
+            _engine.Tick(_gameState, _gameClock, Config);
+        }
+        catch (System.Exception ex)
+        {
+            Log?.Warning($"automation tick ({trigger}) failed: {ex.Message}");
         }
     }
 

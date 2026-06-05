@@ -21,6 +21,9 @@ public sealed class AutomationConfig
     /// <summary>Keep the player's energy topped up automatically (instant QoL, no business needed).</summary>
     public bool WellbeingEnabled { get; set; }
 
+    /// <summary>Target shelf level each product is restocked up to.</summary>
+    public int RestockTarget { get; set; } = 20;
+
     /// <summary>Automation will not spend cash below this floor.</summary>
     public decimal CashReserveFloor { get; set; }
 
