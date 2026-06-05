@@ -17,3 +17,7 @@ build/
 # OS
 Thumbs.db
 .DS_Store
+
+# Tool scratch
+.playwright-mcp/
+ba-*.png

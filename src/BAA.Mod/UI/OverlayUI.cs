@@ -10,7 +10,7 @@ namespace BAA.Mod.UI;
 /// </summary>
 internal sealed class OverlayUI
 {
-    private const float W = 380f, H = 600f, X = 24f, Y = 24f, Pad = 16f;
+    private const float W = 380f, H = 664f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
 
     /// <summary>Screen rect of the panel in GUI space (origin top-left) — used to block click-through.</summary>
@@ -69,7 +69,10 @@ internal sealed class OverlayUI
             GameActions.AddMoney(1000f);
         if (Button(new Rect(ix + bw + 8, cy, bw, 30), "ENERGY 100%", _btnGreen, "Instantly refill your energy to full."))
             GameActions.RefillEnergy();
-        cy += 30 + 14;
+        cy += 30 + 8;
+        if (Button(new Rect(ix, cy, iw, 26), "SCAN MY BUSINESSES", _btnDark, "Lists each of your businesses and its current stock in the activity log (and MelonLoader console)."))
+            ShopProbe.ScanAndLog();
+        cy += 26 + 14;
 
         // --- Features (custom ON/OFF switches) ---
         GUI.Label(new Rect(ix, cy, iw, 13), "FEATURES", _section);
