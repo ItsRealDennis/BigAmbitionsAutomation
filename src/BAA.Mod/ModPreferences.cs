@@ -13,6 +13,7 @@ internal static class ModPreferences
     private static MelonPreferences_Entry<bool> _master, _restock, _logistics, _employees, _finance, _timeskip, _wellbeing;
     private static MelonPreferences_Entry<float> _reserve;
     private static MelonPreferences_Entry<int> _restockTarget;
+    private static MelonPreferences_Entry<string> _lang;
     private static string _lastSig;
 
     public static void Load(AutomationConfig cfg)
@@ -27,6 +28,7 @@ internal static class ModPreferences
         _wellbeing = _cat.CreateEntry("WellbeingEnabled", false);
         _reserve = _cat.CreateEntry("CashReserveFloor", 0f);
         _restockTarget = _cat.CreateEntry("RestockTarget", 20);
+        _lang = _cat.CreateEntry("Language", "en");
 
         cfg.MasterEnabled = _master.Value;
         cfg.RestockEnabled = _restock.Value;
@@ -37,6 +39,8 @@ internal static class ModPreferences
         cfg.WellbeingEnabled = _wellbeing.Value;
         cfg.CashReserveFloor = (decimal)_reserve.Value;
         cfg.RestockTarget = _restockTarget.Value;
+        cfg.Language = _lang.Value;
+        Loc.Current = cfg.Language == "da" ? Lang.Da : Lang.En;
         _lastSig = Sig(cfg);
     }
 
@@ -59,10 +63,11 @@ internal static class ModPreferences
         _wellbeing.Value = cfg.WellbeingEnabled;
         _reserve.Value = (float)cfg.CashReserveFloor;
         _restockTarget.Value = cfg.RestockTarget;
+        _lang.Value = cfg.Language;
         MelonPreferences.Save();
     }
 
     private static string Sig(AutomationConfig c)
         => $"{c.MasterEnabled}|{c.RestockEnabled}|{c.LogisticsEnabled}|{c.EmployeesEnabled}|" +
-           $"{c.FinanceEnabled}|{c.TimeSkipEnabled}|{c.WellbeingEnabled}|{c.CashReserveFloor}|{c.RestockTarget}";
+           $"{c.FinanceEnabled}|{c.TimeSkipEnabled}|{c.WellbeingEnabled}|{c.CashReserveFloor}|{c.RestockTarget}|{c.Language}";
 }

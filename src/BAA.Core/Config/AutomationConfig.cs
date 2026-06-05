@@ -24,6 +24,9 @@ public sealed class AutomationConfig
     /// <summary>Target shelf level each product is restocked up to.</summary>
     public int RestockTarget { get; set; } = 20;
 
+    /// <summary>UI language code: "en" or "da".</summary>
+    public string Language { get; set; } = "en";
+
     /// <summary>Automation will not spend cash below this floor.</summary>
     public decimal CashReserveFloor { get; set; }
 

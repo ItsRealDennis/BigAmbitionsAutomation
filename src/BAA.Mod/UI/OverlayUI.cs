@@ -7,6 +7,7 @@ namespace BAA.Mod.UI;
 /// The in-game control panel (F8): a rounded, slate-blue, game-matching IMGUI overlay.
 /// Built only from GUI.Box + GUI.Label + manual click detection — the game's IL2CPP build strips
 /// the stateful IMGUI controls (TextField/Toggle/Button) so we draw our own from textures.
+/// All user-facing text goes through <see cref="Loc.T"/> (English/Danish).
 /// </summary>
 internal sealed class OverlayUI
 {
@@ -16,17 +17,17 @@ internal sealed class OverlayUI
     /// <summary>Screen rect of the panel in GUI space (origin top-left) — used to block click-through.</summary>
     internal static Rect PanelRect => new Rect(X, Y, W, H);
 
-    // Palette tuned to the game's pause menu (slate panels, vivid buttons, bold white text).
     private static readonly Color Slate = new(0.21f, 0.25f, 0.31f, 0.97f);
     private static readonly Color Inset = new(0.12f, 0.14f, 0.18f, 0.85f);
     private static readonly Color Blue = new(0.18f, 0.50f, 0.82f);
     private static readonly Color Green = new(0.33f, 0.66f, 0.34f);
+    private static readonly Color Cyan = new(0.36f, 0.80f, 1f);
     private static readonly Color SwitchOff = new(0.30f, 0.35f, 0.42f);
     private static readonly Color White = new(0.96f, 0.97f, 0.99f);
     private static readonly Color Dim = new(0.68f, 0.74f, 0.82f);
 
     private bool _built;
-    private GUIStyle _panel, _inset, _title, _sub, _value, _label, _section, _logline, _pill, _footer;
+    private GUIStyle _panel, _inset, _title, _sub, _value, _label, _section, _logline, _pill, _pillOn, _footer;
     private GUIStyle _btnBlue, _btnGreen, _btnDark, _swOn, _swOff, _tipBg, _tipStyle;
     private string _tip;
     private Vector2 _tipAt;
@@ -44,7 +45,9 @@ internal sealed class OverlayUI
         GUI.Label(new Rect(ix, cy, iw - 44, 28), "BA BOT", _title);
         GUI.Box(new Rect(X + W - Pad - 38, cy + 4, 38, 20), "F8", _pill);
         cy += 30;
-        GUI.Label(new Rect(ix, cy, iw, 14), "AUTOMATION CONTROL", _sub);
+        GUI.Label(new Rect(ix, cy, iw - 76, 14), Loc.T("AUTOMATION CONTROL"), _sub);
+        if (LangPill(new Rect(X + W - Pad - 70, cy - 2, 33, 18), "EN", Loc.Current == Lang.En)) SetLang(cfg, Lang.En);
+        if (LangPill(new Rect(X + W - Pad - 35, cy - 2, 33, 18), "DA", Loc.Current == Lang.Da)) SetLang(cfg, Lang.Da);
         cy += 24;
 
         // --- Live status ---
@@ -53,29 +56,29 @@ internal sealed class OverlayUI
         {
             GUI.Label(new Rect(ix + 14, cy + 8, iw - 28, 24), $"${s.Money:N0}", _value);
             GUI.Label(new Rect(ix + 14, cy + 34, iw - 28, 16),
-                $"DAY {s.Day}   {s.Hour:00}:{(int)s.Minute:00}   •   NET ${s.NetWorth:N0}", _sub);
+                $"{Loc.T("DAY")} {s.Day}   {s.Hour:00}:{(int)s.Minute:00}   •   {Loc.T("NET")} ${s.NetWorth:N0}", _sub);
         }
         else
         {
-            GUI.Label(new Rect(ix + 14, cy + 18, iw - 28, 22), "NO SAVE LOADED", _value);
+            GUI.Label(new Rect(ix + 14, cy + 18, iw - 28, 22), Loc.T("NO SAVE LOADED"), _value);
         }
         cy += 58 + 14;
 
-        // --- Quick actions (work the instant you spawn; prove the write path) ---
-        GUI.Label(new Rect(ix, cy, iw, 13), "QUICK ACTIONS", _section);
+        // --- Quick actions ---
+        GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("QUICK ACTIONS"), _section);
         cy += 18;
         float bw = (iw - 8) / 2f;
         if (Button(new Rect(ix, cy, bw, 30), "+$1,000", _btnBlue, "Instantly add $1,000 cash. Handy for testing the mod."))
             GameActions.AddMoney(1000f);
-        if (Button(new Rect(ix + bw + 8, cy, bw, 30), "ENERGY 100%", _btnGreen, "Instantly refill your energy to full."))
+        if (Button(new Rect(ix + bw + 8, cy, bw, 30), Loc.T("ENERGY 100%"), _btnGreen, "Instantly refill your energy to full."))
             GameActions.RefillEnergy();
         cy += 30 + 8;
-        if (Button(new Rect(ix, cy, iw, 26), "SCAN MY BUSINESSES", _btnDark, "Lists each of your businesses and its current stock in the activity log (and MelonLoader console)."))
+        if (Button(new Rect(ix, cy, iw, 26), Loc.T("SCAN MY BUSINESSES"), _btnDark, "Lists each of your businesses and its current stock in the activity log (and MelonLoader console)."))
             ShopProbe.ScanAndLog();
         cy += 26 + 14;
 
         // --- Features (custom ON/OFF switches) ---
-        GUI.Label(new Rect(ix, cy, iw, 13), "FEATURES", _section);
+        GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("FEATURES"), _section);
         cy += 18;
         cfg.MasterEnabled = SwitchRow(ix, ref cy, iw, "AUTOMATION (MASTER)", cfg.MasterEnabled, false, "Master switch. Must be ON for anything below to run. Off = the mod does nothing.");
         cfg.RestockEnabled = SwitchRow(ix, ref cy, iw, "AUTO-RESTOCK", cfg.RestockEnabled, true, "Keeps shops stocked: buys products back up to target when shelves run low. (Coming soon)");
@@ -87,7 +90,7 @@ internal sealed class OverlayUI
         cy += 8;
 
         // --- Reserve floor ---
-        GUI.Label(new Rect(ix, cy + 5, iw - 76, 20), $"RESERVE FLOOR  ${cfg.CashReserveFloor:N0}", _label);
+        GUI.Label(new Rect(ix, cy + 5, iw - 76, 20), $"{Loc.T("RESERVE FLOOR")}  ${cfg.CashReserveFloor:N0}", _label);
         TipIf(new Rect(ix, cy, iw - 76, 26), "Automation never spends below this cash cushion. Use the minus / plus buttons to adjust.");
         if (Button(new Rect(ix + iw - 68, cy, 30, 26), "−", _btnDark))
             cfg.CashReserveFloor = System.Math.Max(0m, cfg.CashReserveFloor - ReserveStep);
@@ -96,7 +99,7 @@ internal sealed class OverlayUI
         cy += 36;
 
         // --- Activity log ---
-        GUI.Label(new Rect(ix, cy, iw, 13), "ACTIVITY", _section);
+        GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("ACTIVITY"), _section);
         cy += 18;
         float logH = Y + H - cy - Pad - 20;
         GUI.Box(new Rect(ix, cy, iw, logH), "", _inset);
@@ -109,21 +112,33 @@ internal sealed class OverlayUI
         }
 
         // Footer
-        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), "BA BOT  v0.1.0     •     F8 to toggle", _footer);
+        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.1.0     •     {Loc.T("F8 to toggle")}", _footer);
 
         DrawTooltip();
     }
 
+    private static void SetLang(AutomationConfig cfg, Lang lang)
+    {
+        Loc.Current = lang;
+        cfg.Language = lang == Lang.Da ? "da" : "en";
+    }
+
     // --- Custom controls (Box + Label + manual hit-test) ---
+
+    private bool LangPill(Rect r, string label, bool active)
+    {
+        GUI.Box(r, label, active ? _pillOn : _pill);
+        return Clicked(r);
+    }
 
     private bool SwitchRow(float x, ref float cy, float w, string label, bool value, bool indent, string tip)
     {
         float lx = x + (indent ? 16 : 0);
         var row = new Rect(x, cy, w, 26);
-        GUI.Label(new Rect(lx, cy + 5, w - 60, 18), label, indent ? _label : _section);
+        GUI.Label(new Rect(lx, cy + 5, w - 60, 18), Loc.T(label), indent ? _label : _section);
 
         var pill = new Rect(x + w - 50, cy + 2, 48, 22);
-        GUI.Box(pill, value ? "ON" : "OFF", value ? _swOn : _swOff);
+        GUI.Box(pill, value ? Loc.T("ON") : Loc.T("OFF"), value ? _swOn : _swOff);
 
         TipIf(row, tip);
         cy += 28;
@@ -141,7 +156,7 @@ internal sealed class OverlayUI
     {
         if (string.IsNullOrEmpty(tip)) return;
         var e = Event.current;
-        if (e != null && r.Contains(e.mousePosition)) { _tip = tip; _tipAt = e.mousePosition; }
+        if (e != null && r.Contains(e.mousePosition)) { _tip = Loc.T(tip); _tipAt = e.mousePosition; }
     }
 
     private void DrawTooltip()
@@ -175,6 +190,8 @@ internal sealed class OverlayUI
         _inset = Rounded(Inset, 8);
         _pill = Rounded(new Color(1f, 1f, 1f, 0.10f), 6);
         _pill.fontSize = 11; _pill.fontStyle = FontStyle.Bold; _pill.alignment = TextAnchor.MiddleCenter; _pill.normal.textColor = Dim;
+        _pillOn = Rounded(Cyan, 6);
+        _pillOn.fontSize = 11; _pillOn.fontStyle = FontStyle.Bold; _pillOn.alignment = TextAnchor.MiddleCenter; _pillOn.normal.textColor = new Color(0.04f, 0.09f, 0.14f);
 
         _title = Text(22, White, FontStyle.Bold);
         _sub = Text(11, Dim, FontStyle.Bold);
