@@ -26,7 +26,7 @@ internal sealed class OverlayUI
     private static readonly Color Dim = new(0.68f, 0.74f, 0.82f);
 
     private bool _built;
-    private GUIStyle _panel, _inset, _title, _sub, _value, _label, _section, _logline, _pill;
+    private GUIStyle _panel, _inset, _title, _sub, _value, _label, _section, _logline, _pill, _footer;
     private GUIStyle _btnBlue, _btnGreen, _btnDark, _swOn, _swOff;
 
     public void Draw(AutomationConfig cfg, GameSnapshot s)
@@ -91,7 +91,7 @@ internal sealed class OverlayUI
         // --- Activity log ---
         GUI.Label(new Rect(ix, cy, iw, 13), "ACTIVITY", _section);
         cy += 18;
-        float logH = Y + H - cy - Pad;
+        float logH = Y + H - cy - Pad - 20;
         GUI.Box(new Rect(ix, cy, iw, logH), "", _inset);
         var lines = Diagnostics.Activity.Recent();
         float ly = cy + 8;
@@ -100,6 +100,9 @@ internal sealed class OverlayUI
             GUI.Label(new Rect(ix + 10, ly, iw - 20, 14), lines[i], _logline);
             ly += 15;
         }
+
+        // Footer
+        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), "BA BOT  v0.1.0     •     F8 to toggle", _footer);
     }
 
     // --- Custom controls (Box + Label + manual hit-test) ---
@@ -147,6 +150,8 @@ internal sealed class OverlayUI
         _label = Text(13, White, FontStyle.Bold);
         _section = Text(11, Dim, FontStyle.Bold);
         _logline = Text(11, Dim);
+        _footer = Text(10, new Color(0.46f, 0.52f, 0.62f));
+        _footer.alignment = TextAnchor.MiddleCenter;
 
         _btnBlue = ButtonStyle(Blue);
         _btnGreen = ButtonStyle(Green);
