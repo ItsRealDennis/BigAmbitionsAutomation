@@ -31,6 +31,9 @@ public interface IGameCommands
     CommandResult PayLoanInstallment(LoanId loan);
     CommandResult PayTaxes(decimal amount);
 
+    /// <summary>Charge the opt-in automation service fee (a flat cash cost per run that did work).</summary>
+    CommandResult ChargeServiceFee(decimal amount);
+
     // --- Time ---
     CommandResult SetTimeSpeed(float multiplier);
     CommandResult RequestSkip(SkipSpec spec);

@@ -77,6 +77,25 @@ internal sealed class GameCommandsAdapter : IGameCommands
         }
     }
 
+    public CommandResult ChargeServiceFee(decimal amount)
+    {
+        if (amount <= 0m)
+            return CommandResult.Skipped("no fee");
+        if (!Live)
+            return Preview($"automation service fee ${amount:N0}", -amount);
+
+        try
+        {
+            GameManager.Command_ChangeMoney(-(float)amount);
+            Diagnostics.Activity.Add($"Automation service fee -${amount:N0}");
+            return CommandResult.Applied(-amount);
+        }
+        catch (System.Exception ex)
+        {
+            return CommandResult.Failed("service fee: " + ex.Message);
+        }
+    }
+
     // --- Employees ---
 
     public CommandResult GiveBonus(EmployeeId employee)

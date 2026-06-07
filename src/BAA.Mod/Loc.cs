@@ -37,6 +37,7 @@ internal static class Loc
         ["SCAN SHOPS"] = "SCAN BUTIKKER",
         ["RUN NOW"] = "KØR NU",
         ["RESTOCK TARGET"] = "GENOPFYLD MÅL",
+        ["FEE / RUN"] = "GEBYR / KØRSEL",
         ["Tax due"] = "Skyldig skat",
         ["Loans"] = "Lån",
         ["Staff"] = "Personale",
@@ -50,6 +51,7 @@ internal static class Loc
         ["FINANCE AUTO-PAY"] = "FINANS AUTO-BETAL",
         ["TIME-SKIP (AFK)"] = "TIDSSPRING (AFK)",
         ["AUTO-WELLBEING"] = "AUTO-VELVÆRE",
+        ["SERVICE FEE"] = "SERVICEGEBYR",
 
         // Tooltips
         ["Instantly add $1,000 cash. Handy for testing the mod."]
@@ -84,5 +86,9 @@ internal static class Loc
             = "Slå AUTOMATION (HOVED) til først",
         ["Auto-restock fills each product up to this many units."]
             = "Auto-genopfyld fylder hver vare op til så mange enheder.",
+        ["Optional challenge: charges in-game cash each time automation does work for you, so leaning on the bot has a cost. OFF = free (default). Respects your reserve floor."]
+            = "Valgfri udfordring: opkræver kontanter i spillet hver gang automatiseringen gør arbejde for dig, så det koster at læne sig op ad botten. FRA = gratis (standard). Respekterer din reservegrænse.",
+        ["Cash charged per automation run when SERVICE FEE is on. Use the minus / plus buttons to adjust."]
+            = "Kontanter der opkræves pr. automatiseringskørsel når SERVICEGEBYR er slået til. Brug minus / plus-knapperne for at justere.",
     };
 }

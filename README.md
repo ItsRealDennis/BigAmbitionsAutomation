@@ -40,6 +40,7 @@ An in-game automation suite for **[Big Ambitions](https://store.steampowered.com
 | 👔 | **Employees** | Morale bonus to unhappy staff when the game allows one, and completed training finished automatically. |
 | 🚚 | **Logistics** | Sets up a repeating weekly import for any product running low, so stock keeps flowing. |
 | 📦 | **Auto-restock** *(preview)* | Reads each shop's stock and restocks to target on the daily tick, gated by your reserve floor. |
+| ⚖️ | **Service fee** *(opt-in)* | Optional challenge: charges in-game cash when automation does work for you, so leaning on the bot isn't free. Off by default; tune the fee in the panel. |
 
 Automation is **default-OFF** and runs only through a plan → safety-gate → apply pipeline. Money-spending actions **preview** (log what they'd do) until you enable **Live mode** in the panel.
 

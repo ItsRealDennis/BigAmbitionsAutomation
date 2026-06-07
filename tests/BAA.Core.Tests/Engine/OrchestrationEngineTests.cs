@@ -89,6 +89,91 @@ public class OrchestrationEngineTests
     }
 
     [Fact]
+    public void Charges_the_service_fee_once_when_enabled_and_the_tick_did_work()
+    {
+        var b1 = new BusinessId("b1");
+        var world = WorldBuilder.New().Cash(1000m).Business("b1").Build();
+        world.PendingIncome[b1] = 100m;
+        var commands = new FakeGameCommands(world);
+
+        var worker = new FakeManager(ManagerPriority.Finance, _ => new ActionPlan(new[]
+        {
+            new PlannedAction(ManagerPriority.Finance, "collect", +100m, b1, c => c.CollectIncome(b1)),
+        }));
+        var config = new AutomationConfig { MasterEnabled = true, ServiceFeeEnabled = true, ServiceFeePerRun = 250m };
+        var engine = new OrchestrationEngine(new IAutomationManager[] { worker }, NoBreakers(), commands, new NullLogger());
+
+        engine.Tick(world, new FakeGameClock(), config);
+
+        Assert.Single(commands.Calls, c => c == "ChargeServiceFee(250)");
+        // 1000 + 100 collected - 250 fee = 850.
+        Assert.Equal(850m, world.Cash);
+    }
+
+    [Fact]
+    public void Does_not_charge_the_service_fee_when_disabled()
+    {
+        var b1 = new BusinessId("b1");
+        var world = WorldBuilder.New().Cash(1000m).Business("b1").Build();
+        world.PendingIncome[b1] = 100m;
+        var commands = new FakeGameCommands(world);
+
+        var worker = new FakeManager(ManagerPriority.Finance, _ => new ActionPlan(new[]
+        {
+            new PlannedAction(ManagerPriority.Finance, "collect", +100m, b1, c => c.CollectIncome(b1)),
+        }));
+        var config = new AutomationConfig { MasterEnabled = true, ServiceFeeEnabled = false, ServiceFeePerRun = 250m };
+        var engine = new OrchestrationEngine(new IAutomationManager[] { worker }, NoBreakers(), commands, new NullLogger());
+
+        engine.Tick(world, new FakeGameClock(), config);
+
+        Assert.DoesNotContain(commands.Calls, c => c.StartsWith("ChargeServiceFee"));
+        Assert.Equal(1100m, world.Cash);
+    }
+
+    [Fact]
+    public void Does_not_charge_the_service_fee_when_the_tick_did_no_work()
+    {
+        var world = WorldBuilder.New().Cash(1000m).Business("b1").Build();
+        var commands = new FakeGameCommands(world);
+
+        // Manager proposes nothing -> no work done -> no fee, even though the fee is enabled.
+        var idle = new FakeManager(ManagerPriority.Finance, _ => ActionPlan.Empty);
+        var config = new AutomationConfig { MasterEnabled = true, ServiceFeeEnabled = true, ServiceFeePerRun = 250m };
+        var engine = new OrchestrationEngine(new IAutomationManager[] { idle }, NoBreakers(), commands, new NullLogger());
+
+        engine.Tick(world, new FakeGameClock(), config);
+
+        Assert.Empty(commands.Calls);
+        Assert.Equal(1000m, world.Cash);
+    }
+
+    [Fact]
+    public void Service_fee_respects_the_reserve_floor()
+    {
+        var b1 = new BusinessId("b1");
+        var world = WorldBuilder.New().Cash(1000m).Business("b1").Build();
+        world.PendingIncome[b1] = 100m;
+        var commands = new FakeGameCommands(world);
+
+        var worker = new FakeManager(ManagerPriority.Finance, _ => new ActionPlan(new[]
+        {
+            new PlannedAction(ManagerPriority.Finance, "collect", +100m, b1, c => c.CollectIncome(b1)),
+        }));
+        // Floor 1000 with cash 1100 after collection: a 250 fee would drop to 850 (< floor) -> rejected.
+        var config = new AutomationConfig
+        {
+            MasterEnabled = true, ServiceFeeEnabled = true, ServiceFeePerRun = 250m, CashReserveFloor = 1000m,
+        };
+        var engine = new OrchestrationEngine(new IAutomationManager[] { worker }, NoBreakers(), commands, new NullLogger());
+
+        engine.Tick(world, new FakeGameClock(), config);
+
+        Assert.DoesNotContain(commands.Calls, c => c.StartsWith("ChargeServiceFee"));
+        Assert.Equal(1100m, world.Cash);
+    }
+
+    [Fact]
     public void A_throwing_command_does_not_abort_the_rest_of_the_tick()
     {
         var b1 = new BusinessId("b1");

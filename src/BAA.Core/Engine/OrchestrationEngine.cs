@@ -33,6 +33,10 @@ public sealed class OrchestrationEngine
         if (!config.MasterEnabled || !state.IsWorldReady())
             return;
 
+        // Track whether the tick actually did anything, so the optional service fee only bites when
+        // the bot did work for the player (an empty run shouldn't be punitive).
+        bool didWork = false;
+
         foreach (var manager in _managers)
         {
             var plan = manager.Plan(new TickContext(state, clock, config));
@@ -57,7 +61,40 @@ public sealed class OrchestrationEngine
 
                 if (result.Outcome == CommandOutcome.Failed)
                     _logger.Error($"Action failed [{action.Description}]: {result.Reason}");
+                else if (result.Outcome == CommandOutcome.Applied)
+                    didWork = true;
             }
         }
+
+        ChargeServiceFee(state, config, didWork);
+    }
+
+    /// <summary>
+    /// Optional difficulty balance: if enabled and the tick did work, charge a flat cash fee. The fee
+    /// runs through the same gate as everything else, so it previews when Live mode is off, respects
+    /// the reserve floor, and is skipped entirely if a halt-all tripwire is active.
+    /// </summary>
+    private void ChargeServiceFee(IGameState state, AutomationConfig config, bool didWork)
+    {
+        if (!config.ServiceFeeEnabled || config.ServiceFeePerRun <= 0m || !didWork)
+            return;
+
+        var fee = config.ServiceFeePerRun;
+        var action = new PlannedAction(
+            ManagerPriority.Finance,
+            $"Automation service fee ${fee:N0}",
+            -fee,
+            null,
+            cmds => cmds.ChargeServiceFee(fee));
+
+        var decision = _gate.Evaluate(new ActionPlan(new[] { action }), state, config);
+        if (decision.Approved.Count == 0)
+        {
+            _logger.Warn($"Service fee ${fee:N0} skipped: reserve floor / tripwire would be breached");
+            return;
+        }
+
+        try { action.Apply(_commands); }
+        catch (Exception ex) { _logger.Error($"Service fee failed: {ex.Message}"); }
     }
 }
