@@ -29,6 +29,10 @@ public sealed class BaBotBehaviour : MonoBehaviour
     private bool _visible;
     private float _refreshTimer;
     private float _sinceRefill = 99f;
+    private bool _loggedUpdateError;
+    private bool _wasVisible;
+    private CursorLockMode _savedLock;
+    private bool _savedCursorVisible;
 
     private OrchestrationEngine _engine;
     private GameStateAdapter _state;
@@ -89,17 +93,33 @@ public sealed class BaBotBehaviour : MonoBehaviour
             }
 
             // F8 toggle (new Input System), ignored while a text field is focused.
-            var kb = Keyboard.current;
-            if (kb != null && kb.f8Key.wasPressedThisFrame && !GameManager.HasInputSelected())
-                _visible = !_visible;
+            // Own guard, silent: a per-frame failure here must never spam the player log.
+            try
+            {
+                var kb = Keyboard.current;
+                if (kb != null && kb.f8Key.wasPressedThisFrame && !GameManager.HasInputSelected())
+                    _visible = !_visible;
+            }
+            catch { }
 
+            // Free the cursor while the panel is open; restore the game's cursor state on close.
             if (_visible)
             {
+                if (!_wasVisible) { _savedLock = Cursor.lockState; _savedCursorVisible = Cursor.visible; _wasVisible = true; }
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
             }
+            else if (_wasVisible)
+            {
+                Cursor.lockState = _savedLock;
+                Cursor.visible = _savedCursorVisible;
+                _wasVisible = false;
+            }
         }
-        catch (Exception ex) { Debug.LogWarning("[BA BOT] update failed: " + ex.Message); }
+        catch (Exception ex)
+        {
+            if (!_loggedUpdateError) { _loggedUpdateError = true; Debug.LogWarning("[BA BOT] update failed (logged once): " + ex.Message); }
+        }
     }
 
     private void OnGUI()

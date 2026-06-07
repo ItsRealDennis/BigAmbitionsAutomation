@@ -49,9 +49,11 @@ internal sealed class GameCommandsAdapter : IGameCommands
 
         try
         {
-            GameManager.Command_ChangeMoney((float)spend); // negative = debit
+            // Deliver FIRST (this is the call that can throw), then debit — so a failed delivery
+            // never charges the player for stock they didn't get (no money/stock desync).
             var cargo = new CargoInstance { itemName = name, amount = quantity, pricePerUnit = (float)unit, paid = true };
             ItemHelper.DeliverCargoToBuilding(cargo, reg, (Func<ItemInstance, bool>)null);
+            GameManager.Command_ChangeMoney((float)spend); // negative = debit, only after stock is in
             Activity.Add($"Restocked {quantity}x {name}  -${unit * quantity:N0}");
             return CommandResult.Applied(spend);
         }
