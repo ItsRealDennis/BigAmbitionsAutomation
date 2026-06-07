@@ -119,6 +119,23 @@ internal sealed class GameCommandsAdapter : IGameCommands
         catch (Exception ex) { return CommandResult.Failed("finish training: " + ex.Message); }
     }
 
+    // --- Scheduling (live: hand the business to the game's own auto-scheduler) ---
+    public CommandResult AutoFillSchedule(BusinessId business)
+    {
+        if (!_state.TryResolveBusiness(business, out var reg) || reg == null)
+            return CommandResult.Failed("could not resolve business");
+        if (!Live) return Preview("auto-fill schedule");
+        try
+        {
+            // warnIfUnassigned:false avoids the in-game confirm popup; inhibitSuccessNotification:true keeps
+            // it quiet; the game fills on a background thread. No cash cost.
+            Helpers.ScheduleAutoFillerHelper.AutoFillSchedule(reg, null, null, false, true, true);
+            Activity.Add("Auto-filled employee schedule");
+            return CommandResult.Applied();
+        }
+        catch (Exception ex) { return CommandResult.Failed("schedule: " + ex.Message); }
+    }
+
     // --- Logistics: previewed (recurring import contracts are stateful; kept preview for now) ---
     public CommandResult ConfigureImportContract(ImportContractSpec spec)
         => Preview($"import contract {spec.Quantity}x {spec.Item}");

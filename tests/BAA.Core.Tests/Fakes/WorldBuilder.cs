@@ -40,6 +40,13 @@ public sealed class WorldBuilder
         return this;
     }
 
+    /// <summary>Set a business's staffing state (assigned vs. unscheduled employees) for scheduling tests.</summary>
+    public WorldBuilder Staffing(string businessId, int assigned, int unscheduled)
+    {
+        _world.Staffing[new BusinessId(businessId)] = new StaffingInfo(assigned, unscheduled);
+        return this;
+    }
+
     public WorldBuilder Tax(decimal due)
     {
         _world.TaxDue = due;

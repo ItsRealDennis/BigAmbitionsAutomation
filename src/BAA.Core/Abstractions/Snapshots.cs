@@ -84,3 +84,10 @@ public sealed record PricingLine(
     string ItemName,
     decimal CurrentPrice,
     decimal OptimalPrice);
+
+/// <summary>Per-business staffing state for auto-scheduling: how many employees are assigned to the
+/// business and how many of those are not on any work shift (so the schedule needs filling).</summary>
+public sealed record StaffingInfo(int AssignedEmployees, int UnscheduledEmployees)
+{
+    public bool NeedsSchedule => UnscheduledEmployees > 0;
+}

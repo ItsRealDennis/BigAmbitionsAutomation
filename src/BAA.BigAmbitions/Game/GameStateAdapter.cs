@@ -157,6 +157,35 @@ internal sealed class GameStateAdapter : IGameState
         return lines;
     }
 
+    public StaffingInfo GetStaffing(BusinessId business)
+    {
+        if (!_regs.TryGetValue(business, out var reg) || reg == null)
+            return new StaffingInfo(0, 0);
+
+        List<Entities.EmployeeInstance> all = null;
+        try { all = Helpers.EmployeeHelper.GetEmployeeInstances(); } catch { }
+        if (all == null) return new StaffingInfo(0, 0);
+
+        int assigned = 0, unscheduled = 0;
+        for (int i = 0; i < all.Count; i++)
+        {
+            var e = all[i];
+            if (e == null) continue;
+            try { if (e.IsCandidate) continue; } catch { continue; }
+
+            // Match the employee to THIS business by resolving its assigned address to a registration.
+            BuildingRegistration empReg = null;
+            try { empReg = Helpers.BuildingHelper.GetBuildingRegistration(e.assignedAddress); } catch { }
+            if (empReg != reg) continue;
+
+            assigned++;
+            bool scheduled = false;
+            try { scheduled = e.IsAssignedToAnyWorkShift(); } catch { }
+            if (!scheduled) unscheduled++;
+        }
+        return new StaffingInfo(assigned, unscheduled);
+    }
+
     /// <summary>Resolve a (business, item) decided by the engine back to the live registration + name.
     /// Item identity is the string name, so it round-trips directly through ItemId.Value.</summary>
     public bool TryResolve(BusinessId b, ItemId item, out BuildingRegistration reg, out string itemName)
@@ -164,6 +193,10 @@ internal sealed class GameStateAdapter : IGameState
         itemName = item.Value;
         return _regs.TryGetValue(b, out reg);
     }
+
+    /// <summary>Resolve a business id back to its live registration.</summary>
+    public bool TryResolveBusiness(BusinessId b, out BuildingRegistration reg)
+        => _regs.TryGetValue(b, out reg);
 
     public IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null)
     {

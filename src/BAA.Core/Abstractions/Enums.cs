@@ -25,6 +25,7 @@ public enum ManagerPriority
     Pricing = 25,
     Restock = 30,
     Employee = 40,
+    Scheduling = 45,
     TimeSkip = 90,
 }
 

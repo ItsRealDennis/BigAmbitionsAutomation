@@ -21,6 +21,9 @@ public interface IGameCommands
     CommandResult HireCandidate(CandidateId candidate, BusinessId business);
     CommandResult SetWage(EmployeeId employee, decimal wage);
     CommandResult SetSchedule(EmployeeId employee, ScheduleSpec schedule);
+
+    /// <summary>Ask the game's own auto-scheduler to fill this business's shifts from its assigned staff.</summary>
+    CommandResult AutoFillSchedule(BusinessId business);
     CommandResult SetHealthPlan(EmployeeId employee, bool enabled);
     CommandResult GiveBonus(EmployeeId employee);
     CommandResult FinishTraining(EmployeeId employee);

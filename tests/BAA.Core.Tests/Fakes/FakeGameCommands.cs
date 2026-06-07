@@ -80,6 +80,14 @@ public sealed class FakeGameCommands : IGameCommands
     public CommandResult SetSchedule(EmployeeId employee, ScheduleSpec schedule)
         => Record($"SetSchedule({employee})");
 
+    public CommandResult AutoFillSchedule(BusinessId business)
+    {
+        Calls.Add($"AutoFillSchedule({business})");
+        if (_world.Staffing.TryGetValue(business, out var s))
+            _world.Staffing[business] = s with { UnscheduledEmployees = 0 }; // now fully scheduled
+        return CommandResult.Applied();
+    }
+
     public CommandResult SetHealthPlan(EmployeeId employee, bool enabled)
         => Record($"SetHealthPlan({employee},{enabled})");
 
