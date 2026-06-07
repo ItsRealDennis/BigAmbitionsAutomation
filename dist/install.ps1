@@ -6,6 +6,20 @@
 
 $ErrorActionPreference = 'Stop'
 $here = $PSScriptRoot
+$root = Split-Path -Parent $here   # zip root (this script lives in <root>\files)
+
+function Find-Asset($name) {
+    foreach ($d in @($here, $root, (Join-Path $here 'files'), (Join-Path $root 'files'))) {
+        if ($d) { $p = Join-Path $d $name; if (Test-Path $p) { return $p } }
+    }
+    return $null
+}
+function Find-MLInstaller {
+    foreach ($n in @('MelonLoader Installer.exe','MelonLoader.Installer.exe')) {
+        $p = Find-Asset $n; if ($p) { return $p }
+    }
+    return $null
+}
 
 function Write-Step($m) { Write-Host "  $m" -ForegroundColor Cyan }
 function Write-Ok($m)   { Write-Host "  [OK] $m" -ForegroundColor Green }
@@ -58,8 +72,17 @@ $melon = Test-Path (Join-Path $game "MelonLoader")
 $proxy = (Test-Path (Join-Path $game "version.dll")) -or (Test-Path (Join-Path $game "winhttp.dll"))
 if ($melon -and $proxy) { Write-Ok "MelonLoader detected." }
 else {
-    Write-Warn2 "MelonLoader not detected. Install it first:"
-    Write-Warn2 "  https://github.com/LavaGang/MelonLoader.Installer  (point it at 'Big Ambitions.exe')"
+    Write-Warn2 "MelonLoader not detected - it's required for BA BOT to load."
+    $ml = Find-MLInstaller
+    if ($ml) {
+        $ans = Read-Host "  Open the bundled MelonLoader installer now? (point it at 'Big Ambitions.exe') [Y/n]"
+        if ($ans -notmatch '^(n|no)$') {
+            Start-Process -FilePath $ml | Out-Null
+            Write-Warn2 "MelonLoader installer opened. Install it, launch the game once, then re-run this."
+        }
+    } else {
+        Write-Warn2 "  Get it from https://github.com/LavaGang/MelonLoader  (point it at 'Big Ambitions.exe')"
+    }
 }
 
 $il2 = Test-Path (Join-Path $game "MelonLoader\Il2CppAssemblies\Il2CppBigAmbitions.dll")
@@ -81,10 +104,10 @@ $mods = Join-Path $game "Mods"
 $userlibs = Join-Path $game "UserLibs"
 New-Item -ItemType Directory -Force -Path $mods, $userlibs | Out-Null
 
-$modDll  = Join-Path $here "BAA.Mod.dll"
-$coreDll = Join-Path $here "BAA.Core.dll"
-if (-not (Test-Path $modDll) -or -not (Test-Path $coreDll)) {
-    Write-Err2 "BAA.Mod.dll / BAA.Core.dll not found next to this script. Extract the whole zip and run again."
+$modDll  = Find-Asset "BAA.Mod.dll"
+$coreDll = Find-Asset "BAA.Core.dll"
+if (-not $modDll -or -not $coreDll) {
+    Write-Err2 "BAA.Mod.dll / BAA.Core.dll not found. Extract the whole zip and run again."
     exit 1
 }
 Copy-Item $modDll  (Join-Path $mods "BAA.Mod.dll") -Force

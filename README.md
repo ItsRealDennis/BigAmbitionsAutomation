@@ -46,12 +46,14 @@ Automation is **default-OFF** and runs only through a plan → safety-gate → a
 
 ## ⬇️ Install (players)
 
-1. Install **[MelonLoader](https://github.com/LavaGang/MelonLoader.Installer)** into Big Ambitions and launch the game once. On Windows 11, turn **off Smart App Control** (it blocks unsigned mods).
-2. Download the latest release: **[BA-BOT-v*.zip](https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest)** and unzip.
-3. Double-click **`install.bat`** — a window opens, finds your game, and installs the mod. *(Prefer text? run `install-console.bat`.)*
+**Everything's in the zip — MelonLoader included. Nothing else to download.**
+
+1. Download the latest release: **[BA-BOT-v*.zip](https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest)** and unzip. Inside are just two things: **`Install BA BOT`** and the bundled **`MelonLoader Installer.exe`**.
+2. Double-click **`Install BA BOT`**. It auto-detects your game. If MelonLoader is missing, click **“1 · Install MelonLoader”** — it opens the bundled installer for you (point it at Big Ambitions, install, launch the game once). On Windows 11, turn **off Smart App Control** if asked (it blocks unsigned mods).
+3. Back in the window, click **“2 · Install BA BOT”**.
 4. Launch the game and press **F8**.
 
-To remove: run `uninstall.bat`.
+To remove: open the `files` folder and run `uninstall.bat`. *(Prefer a text installer? `files\install-console.bat`.)*
 
 ## 🛡️ Built to fail safe
 
