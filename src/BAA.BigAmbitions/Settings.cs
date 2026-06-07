@@ -47,6 +47,9 @@ internal static class Settings
             cfg.ServiceFeePerRun  = M(kv, "ServiceFeePerRun", cfg.ServiceFeePerRun);
             cfg.RestockTarget     = I(kv, "RestockTarget", cfg.RestockTarget);
             cfg.Language          = kv.TryGetValue("Language", out var lang) ? lang : cfg.Language;
+            UiPrefs.Scale = F(kv, "UiScale", UiPrefs.Scale);
+            UiPrefs.PosX  = F(kv, "UiPosX", UiPrefs.PosX);
+            UiPrefs.PosY  = F(kv, "UiPosY", UiPrefs.PosY);
         }
         catch (Exception ex) { Debug.LogWarning("[BA BOT] settings load failed: " + ex.Message); }
         _lastSig = Sig(cfg);
@@ -82,6 +85,9 @@ internal static class Settings
         "ServiceFeePerRun="  + c.ServiceFeePerRun.ToString(CultureInfo.InvariantCulture),
         "RestockTarget="     + c.RestockTarget.ToString(CultureInfo.InvariantCulture),
         "Language="          + c.Language,
+        "UiScale="           + UiPrefs.Scale.ToString(CultureInfo.InvariantCulture),
+        "UiPosX="            + UiPrefs.PosX.ToString(CultureInfo.InvariantCulture),
+        "UiPosY="            + UiPrefs.PosY.ToString(CultureInfo.InvariantCulture),
     });
 
     private static bool B(Dictionary<string, string> kv, string k, bool d)
@@ -90,4 +96,14 @@ internal static class Settings
         => kv.TryGetValue(k, out var v) && int.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out var r) ? r : d;
     private static decimal M(Dictionary<string, string> kv, string k, decimal d)
         => kv.TryGetValue(k, out var v) && decimal.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out var r) ? r : d;
+    private static float F(Dictionary<string, string> kv, string k, float d)
+        => kv.TryGetValue(k, out var v) && float.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out var r) ? r : d;
+}
+
+/// <summary>Panel size + position prefs (persisted alongside settings; not part of the Core config).</summary>
+internal static class UiPrefs
+{
+    public static float Scale = 1f;
+    public static float PosX = 26f;
+    public static float PosY = -26f;
 }

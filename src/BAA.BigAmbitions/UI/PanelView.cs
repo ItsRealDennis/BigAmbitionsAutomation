@@ -19,6 +19,9 @@ internal sealed class PanelView
     private Text _status;
     private GameObject _tip;
     private Text _tipText;
+    private RectTransform _winRect;
+    private Canvas _canvas;
+    private const float MinScale = 0.5f, MaxScale = 1.7f;
 
     private sealed class ToggleRow { public Image Pill; public Text PillText; public Text Label; public Func<bool> Get; }
     private sealed class StepRow { public Text Label; public Func<string> Format; }
@@ -60,14 +63,24 @@ internal sealed class PanelView
         scaler.referenceResolution = new Vector2(1480, 760); // low ref height => large UI (~1.9x at 1440p)
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 1f;
+        _canvas = canvas;
         _root.AddComponent<GraphicRaycaster>();
 
         var win = Panel(_root.transform, "Window", 26, 26, W, H, Slate, 16).transform;
+        _winRect = (RectTransform)win;
+        _winRect.localScale = Vector3.one * Mathf.Clamp(UiPrefs.Scale, MinScale, MaxScale);
+        _winRect.anchoredPosition = new Vector2(UiPrefs.PosX, UiPrefs.PosY);
 
-        Panel(win, "Chrome", 0, 0, W, 12, Chrome, 16);
-        MkText(win, "Title", Pad, 20, W - 2 * Pad - 48, 34, 27, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
-        MkText(win, "Sub", Pad, 54, W - 2 * Pad - 48, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
-        Btn(win, "Close", W - Pad - 34, 22, 34, 30, Red, White, "X", 16, () => { try { onClose(); } catch { } }, "Close the panel (or press F8).");
+        // Transparent header handle: drag anywhere on the top bar (except the buttons) to move the panel.
+        var handle = Panel(win, "DragHandle", 0, 0, W, 64, new Color(1f, 1f, 1f, 0f), 16);
+        AddDrag(handle.gameObject);
+
+        var chrome = Panel(win, "Chrome", 0, 0, W, 12, Chrome, 16); chrome.raycastTarget = false;
+        MkText(win, "Title", Pad, 20, W - 2 * Pad - 134, 34, 27, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
+        MkText(win, "Sub", Pad, 54, W - 2 * Pad - 134, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
+        Btn(win, "SizeDown", W - Pad - 118, 22, 34, 30, RowBg, White, "-", 20, () => ChangeScale(-0.1f), "Make the panel smaller");
+        Btn(win, "SizeUp", W - Pad - 80, 22, 34, 30, RowBg, White, "+", 20, () => ChangeScale(0.1f), "Make the panel bigger");
+        Btn(win, "Close", W - Pad - 34, 22, 34, 30, Red, White, "X", 16, () => { try { onClose(); } catch { } }, "Close the panel (or press F8). Drag the title bar to move it; use - / + to resize.");
 
         float y = 90;
         Panel(win, "StatusBg", Pad, y, W - 2 * Pad, 112, Inset, 10);
@@ -214,6 +227,32 @@ internal sealed class PanelView
         rt.position = new Vector3(x, top, 0f);
         _tip.SetActive(true);
         _tip.transform.SetAsLastSibling();
+    }
+
+    // ---- move + resize ----
+
+    private void AddDrag(GameObject go)
+    {
+        var et = go.AddComponent<EventTrigger>();
+        var drag = new EventTrigger.Entry { eventID = EventTriggerType.Drag };
+        drag.callback.AddListener(OnDrag);
+        et.triggers.Add(drag);
+    }
+
+    private void OnDrag(BaseEventData data)
+    {
+        var ped = data as PointerEventData;
+        if (ped == null || _winRect == null) return;
+        float sf = (_canvas != null && _canvas.scaleFactor > 0f) ? _canvas.scaleFactor : 1f;
+        _winRect.anchoredPosition += ped.delta / sf;
+        UiPrefs.PosX = _winRect.anchoredPosition.x;
+        UiPrefs.PosY = _winRect.anchoredPosition.y;
+    }
+
+    private void ChangeScale(float delta)
+    {
+        UiPrefs.Scale = Mathf.Clamp(UiPrefs.Scale + delta, MinScale, MaxScale);
+        if (_winRect != null) _winRect.localScale = Vector3.one * UiPrefs.Scale;
     }
 
     // ---- primitives ----
