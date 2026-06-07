@@ -1,48 +1,48 @@
 using System;
 using System.Collections.Generic;
 using BAA.Core.Config;
-using BaBot.Diagnostics;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace BaBot.UI;
 
 /// <summary>
-/// The F8 in-game overlay — a rounded, slate/cyan, game-matching panel built at runtime from Unity's
-/// own uGUI components (so it always instantiates, unlike a mod-defined MonoBehaviour). Driven by
-/// BaBotLogic via UnityLifecycleProvider.OnUpdate. Rounded corners come from a 9-sliced sprite tinted
-/// per element; the canvas scales by height so it reads well on ultrawide.
+/// The F8 in-game overlay — a large, rounded, Big-Ambitions-styled panel built at runtime from Unity's
+/// own uGUI components (so it always instantiates, unlike a mod-defined MonoBehaviour). Two-column
+/// toggle grid keeps it short enough to scale up large. Hover tooltips via Unity's EventTrigger.
 /// </summary>
 internal sealed class PanelView
 {
     private GameObject _root;
     private Font _font;
     private Text _status;
-    private Text _activity;
+    private GameObject _tip;
+    private Text _tipText;
 
-    private sealed class ToggleRow { public Image Pill; public Text PillText; public Text Label; public Func<bool> Get; public string Name; }
+    private sealed class ToggleRow { public Image Pill; public Text PillText; public Text Label; public Func<bool> Get; }
     private sealed class StepRow { public Text Label; public Func<string> Format; }
     private readonly List<ToggleRow> _toggles = new();
     private readonly List<StepRow> _steppers = new();
     private static readonly Dictionary<int, Sprite> _sprites = new();
 
-    private static readonly Color Slate   = new(0.137f, 0.165f, 0.212f, 0.98f); // BA dark blue-grey body
-    private static readonly Color Chrome  = new(0.85f, 0.87f, 0.90f, 1f);        // light window top strip
+    private static readonly Color Slate   = new(0.137f, 0.165f, 0.212f, 0.98f);
+    private static readonly Color Chrome  = new(0.85f, 0.87f, 0.90f, 1f);
     private static readonly Color Inset   = new(0.082f, 0.10f, 0.13f, 1f);
     private static readonly Color RowBg   = new(0.18f, 0.22f, 0.28f, 1f);
-    private static readonly Color Blue    = new(0.24f, 0.53f, 0.95f, 1f);        // BA primary blue
+    private static readonly Color Blue    = new(0.24f, 0.53f, 0.95f, 1f);
     private static readonly Color Cyan    = new(0.40f, 0.78f, 1f, 1f);
     private static readonly Color Green   = new(0.30f, 0.72f, 0.42f, 1f);
     private static readonly Color Red     = new(0.91f, 0.30f, 0.24f, 1f);
     private static readonly Color GreyOff = new(0.30f, 0.35f, 0.42f, 1f);
     private static readonly Color White   = new(0.96f, 0.97f, 0.99f, 1f);
     private static readonly Color Dim     = new(0.66f, 0.73f, 0.82f, 1f);
-    private static readonly Color Dark    = new(0.05f, 0.10f, 0.14f, 1f);
+    private static readonly Color TipBg   = new(0.04f, 0.06f, 0.09f, 0.98f);
 
-    private const float W = 480f, H = 900f, Pad = 20f;
+    private const float W = 540f, H = 700f, Pad = 22f;
 
     public bool Built => _root != null;
-    public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) _root.SetActive(v); }
+    public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) { _root.SetActive(v); if (!v && _tip != null) _tip.SetActive(false); } }
     public void Destroy() { if (_root != null) { UnityEngine.Object.Destroy(_root); _root = null; } }
 
     public void Build(AutomationConfig cfg, Action runNow, Action onClose)
@@ -57,56 +57,75 @@ internal sealed class PanelView
         canvas.sortingOrder = 30000;
         var scaler = _root.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 960); // lower ref height => larger UI (~1.5x at 1440p)
+        scaler.referenceResolution = new Vector2(1480, 760); // low ref height => large UI (~1.9x at 1440p)
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        scaler.matchWidthOrHeight = 1f; // scale by height — consistent on ultrawide
+        scaler.matchWidthOrHeight = 1f;
         _root.AddComponent<GraphicRaycaster>();
 
-        var win = Panel(_root.transform, "Window", 28, 28, W, H, Slate, 16).transform;
+        var win = Panel(_root.transform, "Window", 26, 26, W, H, Slate, 16).transform;
 
-        // BA-style header: light window-chrome strip, title, red close button
         Panel(win, "Chrome", 0, 0, W, 12, Chrome, 16);
-        MkText(win, "Title", Pad, 20, W - 2 * Pad - 44, 30, 24, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
-        MkText(win, "Sub", Pad, 48, W - 2 * Pad - 44, 18, 12, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
-        Btn(win, "Close", W - Pad - 30, 20, 30, 28, Red, White, "X", 14, () => { try { onClose(); } catch { } });
+        MkText(win, "Title", Pad, 20, W - 2 * Pad - 48, 34, 27, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
+        MkText(win, "Sub", Pad, 54, W - 2 * Pad - 48, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
+        Btn(win, "Close", W - Pad - 34, 22, 34, 30, Red, White, "X", 16, () => { try { onClose(); } catch { } }, "Close the panel (or press F8).");
 
-        float y = 84;
-        Panel(win, "StatusBg", Pad, y, W - 2 * Pad, 104, Inset, 10);
-        _status = MkText(win, "Status", Pad + 16, y + 12, W - 2 * Pad - 32, 84, 15, White, TextAnchor.UpperLeft, FontStyle.Normal);
-        _status.lineSpacing = 1.15f;
-        y += 104 + 16;
+        float y = 90;
+        Panel(win, "StatusBg", Pad, y, W - 2 * Pad, 112, Inset, 10);
+        _status = MkText(win, "Status", Pad + 16, y + 12, W - 2 * Pad - 32, 90, 16, White, TextAnchor.UpperLeft, FontStyle.Normal);
+        _status.lineSpacing = 1.2f;
+        y += 112 + 14;
 
-        AddToggle(win, ref y, "AUTOMATION (MASTER)", () => cfg.MasterEnabled, v => cfg.MasterEnabled = v);
-        AddToggle(win, ref y, "FINANCE AUTO-PAY", () => cfg.FinanceEnabled, v => cfg.FinanceEnabled = v);
-        AddToggle(win, ref y, "EMPLOYEES", () => cfg.EmployeesEnabled, v => cfg.EmployeesEnabled = v);
-        AddToggle(win, ref y, "LOGISTICS", () => cfg.LogisticsEnabled, v => cfg.LogisticsEnabled = v);
-        AddToggle(win, ref y, "AUTO-RESTOCK", () => cfg.RestockEnabled, v => cfg.RestockEnabled = v);
-        AddToggle(win, ref y, "AUTO-WELLBEING", () => cfg.WellbeingEnabled, v => cfg.WellbeingEnabled = v);
-        AddToggle(win, ref y, "SERVICE FEE", () => cfg.ServiceFeeEnabled, v => cfg.ServiceFeeEnabled = v);
-        AddToggle(win, ref y, "LIVE MODE", () => cfg.LiveWrites, v => cfg.LiveWrites = v);
-        y += 8;
+        // 2-column toggle grid (short labels; full descriptions in the tooltip)
+        var defs = new (string disp, Func<bool> g, Action<bool> s, string tip)[]
+        {
+            ("MASTER",    () => cfg.MasterEnabled,    v => cfg.MasterEnabled = v,    "Master switch. Must be ON for anything else to run. Off = the mod does nothing."),
+            ("FINANCE",   () => cfg.FinanceEnabled,   v => cfg.FinanceEnabled = v,   "Auto-pays your taxes the moment they come due - the one money chore the game won't do for you."),
+            ("EMPLOYEES", () => cfg.EmployeesEnabled, v => cfg.EmployeesEnabled = v, "Morale bonus to unhappy staff when the game allows one, and finishes completed training."),
+            ("LOGISTICS", () => cfg.LogisticsEnabled, v => cfg.LogisticsEnabled = v, "Sets up a repeating weekly import for any product running low so stock keeps flowing."),
+            ("RESTOCK",   () => cfg.RestockEnabled,   v => cfg.RestockEnabled = v,   "Buys products back up to your target when shelves run low."),
+            ("WELLBEING", () => cfg.WellbeingEnabled, v => cfg.WellbeingEnabled = v, "Automatically refills your energy and tops up happiness so you never stop to rest."),
+            ("FEE",       () => cfg.ServiceFeeEnabled,v => cfg.ServiceFeeEnabled = v,"Optional challenge: charges cash each time the bot does work for you. Off = free."),
+            ("LIVE MODE", () => cfg.LiveWrites,       v => cfg.LiveWrites = v,       "OFF (default) = automation only PREVIEWS what it would do (safe). ON = it actually pays taxes, restocks and gives bonuses. Turn on only while watching."),
+        };
+        float colW = (W - 2 * Pad - 14) / 2f;
+        float gy = y;
+        for (int i = 0; i < defs.Length; i++)
+        {
+            int col = i % 2, rowIdx = i / 2;
+            float x = Pad + col * (colW + 14);
+            float yy = gy + rowIdx * 52;
+            MakeToggle(win, x, yy, colW, defs[i].disp, defs[i].g, defs[i].s, defs[i].tip);
+        }
+        y = gy + ((defs.Length + 1) / 2) * 52 + 8;
 
         AddStepper(win, ref y, () => $"{Loc.T("RESERVE FLOOR")}   ${cfg.CashReserveFloor:N0}",
-            () => cfg.CashReserveFloor = Math.Max(0m, cfg.CashReserveFloor - 500m), () => cfg.CashReserveFloor += 500m);
+            () => cfg.CashReserveFloor = Math.Max(0m, cfg.CashReserveFloor - 500m), () => cfg.CashReserveFloor += 500m,
+            "Automation never spends below this cash cushion.");
         AddStepper(win, ref y, () => $"{Loc.T("RESTOCK TARGET")}   {cfg.RestockTarget}",
-            () => cfg.RestockTarget = Math.Max(1, cfg.RestockTarget - 5), () => cfg.RestockTarget += 5);
+            () => cfg.RestockTarget = Math.Max(1, cfg.RestockTarget - 5), () => cfg.RestockTarget += 5,
+            "Auto-restock fills each product up to this many units.");
         AddStepper(win, ref y, () => $"{Loc.T("FEE / RUN")}   ${cfg.ServiceFeePerRun:N0}",
-            () => cfg.ServiceFeePerRun = Math.Max(0m, cfg.ServiceFeePerRun - 50m), () => cfg.ServiceFeePerRun += 50m);
-        y += 10;
+            () => cfg.ServiceFeePerRun = Math.Max(0m, cfg.ServiceFeePerRun - 50m), () => cfg.ServiceFeePerRun += 50m,
+            "Cash charged per automation run when Service Fee is on.");
+        y += 12;
 
-        Btn(win, "RunNow", Pad, y, W - 2 * Pad, 42, Blue, White, Loc.T("RUN NOW"), 16, () => { try { runNow(); } catch { } });
-        y += 50;
-        float hw = (W - 2 * Pad - 10) / 2f;
-        Btn(win, "Cash", Pad, y, hw, 36, Green, White, "+$1,000", 14, () => GameActions.AddMoney(1000f));
-        Btn(win, "Energy", Pad + hw + 10, y, hw, 36, Blue, White, Loc.T("ENERGY 100%"), 14, GameActions.RefillEnergy);
-        y += 46;
+        Btn(win, "RunNow", Pad, y, W - 2 * Pad, 46, Blue, White, Loc.T("RUN NOW"), 18, () => { try { runNow(); } catch { } },
+            "Runs one automation pass now. Turn on MASTER + the features you want first. Previews unless Live mode is on.");
+        y += 56;
+        float hw = (W - 2 * Pad - 12) / 2f;
+        Btn(win, "Cash", Pad, y, hw, 40, Green, White, "+$1,000", 16, () => GameActions.AddMoney(1000f), "Instantly add $1,000 cash (handy for testing).");
+        Btn(win, "Energy", Pad + hw + 12, y, hw, 40, Blue, White, Loc.T("ENERGY 100%"), 16, GameActions.RefillEnergy, "Instantly refill your energy to full.");
 
-        MkText(win, "ActLbl", Pad, y, W - 2 * Pad, 16, 12, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("ACTIVITY");
-        y += 20;
-        float logH = H - y - Pad;
-        Panel(win, "ActBg", Pad, y, W - 2 * Pad, logH, Inset, 10);
-        _activity = MkText(win, "Act", Pad + 12, y + 10, W - 2 * Pad - 24, logH - 20, 12.5f, Dim, TextAnchor.UpperLeft, FontStyle.Normal);
-        _activity.lineSpacing = 1.2f;
+        // Tooltip box (hidden until hover)
+        var tipImg = Panel(_root.transform, "Tip", 0, 0, 360, 96, TipBg, 8);
+        tipImg.raycastTarget = false;
+        _tip = tipImg.gameObject;
+        _tipText = MkText(_tip.transform, "tt", 0, 0, 360, 96, 14, White, TextAnchor.UpperLeft, FontStyle.Normal);
+        _tipText.lineSpacing = 1.15f;
+        var trt = _tipText.rectTransform;
+        trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one; trt.pivot = new Vector2(0.5f, 0.5f);
+        trt.offsetMin = new Vector2(12, 10); trt.offsetMax = new Vector2(-12, -10);
+        _tip.SetActive(false);
     }
 
     public void Refresh(AutomationConfig cfg, GameSnapshot s)
@@ -115,7 +134,7 @@ internal sealed class PanelView
         try
         {
             _status.text = s.HasSave
-                ? $"<size=24><b>${s.Money:N0}</b></size>\n" +
+                ? $"<size=27><b>${s.Money:N0}</b></size>\n" +
                   $"{Loc.T("DAY")} {s.Day}   {s.Hour:00}:{(int)s.Minute:00}      {Loc.T("NET")} ${s.NetWorth:N0}\n" +
                   $"{Loc.T("Shops")} {s.PlayerBusinesses}    {Loc.T("Energy")} {s.Energy:0}    {Loc.T("Happy")} {s.Happiness:0}\n" +
                   $"{Loc.T("Tax due")} ${s.TaxDue:N0}    {Loc.T("Loans")} {s.Loans}    {Loc.T("Staff")} {s.Employees}"
@@ -130,43 +149,71 @@ internal sealed class PanelView
                 t.Label.color = on ? White : Dim;
             }
             foreach (var st in _steppers) st.Label.text = st.Format();
-
-            var lines = Activity.Recent();
-            var sb = new System.Text.StringBuilder();
-            for (int i = 0; i < lines.Count && i < 9; i++) sb.AppendLine(lines[i]);
-            _activity.text = sb.ToString();
         }
         catch { }
     }
 
     // ---- builders ----
 
-    private void AddToggle(Transform win, ref float y, string name, Func<bool> get, Action<bool> set)
+    private void MakeToggle(Transform win, float x, float y, float w, string disp, Func<bool> get, Action<bool> set, string tip)
     {
-        var row = Panel(win, "row_" + name, Pad, y, W - 2 * Pad, 34, RowBg, 9);
+        var row = Panel(win, "tg_" + disp, x, y, w, 46, RowBg, 9);
         var btn = row.gameObject.AddComponent<Button>();
         btn.targetGraphic = row; ApplyBtnColors(btn, RowBg);
         btn.onClick.AddListener(() => { try { set(!get()); } catch { } });
+        AddTip(row.gameObject, tip);
 
-        float rowW = W - 2 * Pad;
-        var label = MkText(row.transform, "lbl", 16, 0, rowW - 90, 34, 15, Dim, TextAnchor.MiddleLeft, FontStyle.Bold);
-        label.text = Loc.T(name);
-        var pill = Panel(row.transform, "pill", rowW - 70, 6, 58, 22, GreyOff, 11);
+        var label = MkText(row.transform, "lbl", 14, 0, w - 66, 46, 14, Dim, TextAnchor.MiddleLeft, FontStyle.Bold);
+        label.text = disp;
+        var pill = Panel(row.transform, "pill", w - 56, 11, 46, 24, GreyOff, 12);
         pill.raycastTarget = false;
-        var pillTxt = MkText(pill.transform, "pt", 0, 0, 58, 22, 11, White, TextAnchor.MiddleCenter, FontStyle.Bold);
+        var pillTxt = MkText(pill.transform, "pt", 0, 0, 46, 24, 11, White, TextAnchor.MiddleCenter, FontStyle.Bold);
         Stretch(pillTxt.rectTransform);
 
-        _toggles.Add(new ToggleRow { Pill = pill, PillText = pillTxt, Label = label, Get = get, Name = name });
-        y += 38;
+        _toggles.Add(new ToggleRow { Pill = pill, PillText = pillTxt, Label = label, Get = get });
     }
 
-    private void AddStepper(Transform win, ref float y, Func<string> format, Action minus, Action plus)
+    private void AddStepper(Transform win, ref float y, Func<string> format, Action minus, Action plus, string tip)
     {
-        var lbl = MkText(win, "steplbl", Pad + 2, y + 6, W - 2 * Pad - 100, 30, 16, White, TextAnchor.MiddleLeft, FontStyle.Bold);
-        Btn(win, "Minus", W - Pad - 86, y, 40, 32, RowBg, White, "-", 22, () => { try { minus(); } catch { } });
-        Btn(win, "Plus", W - Pad - 42, y, 40, 32, RowBg, White, "+", 22, () => { try { plus(); } catch { } });
+        var lbl = MkText(win, "steplbl", Pad + 2, y + 7, W - 2 * Pad - 108, 30, 16, White, TextAnchor.MiddleLeft, FontStyle.Bold);
+        Btn(win, "Minus", W - Pad - 94, y, 44, 34, RowBg, White, "-", 24, () => { try { minus(); } catch { } }, tip);
+        Btn(win, "Plus", W - Pad - 46, y, 44, 34, RowBg, White, "+", 24, () => { try { plus(); } catch { } }, tip);
         _steppers.Add(new StepRow { Label = lbl, Format = format });
-        y += 40;
+        y += 44;
+    }
+
+    // ---- tooltips ----
+
+    private void AddTip(GameObject go, string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        var et = go.AddComponent<EventTrigger>();
+        var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+        enter.callback.AddListener(d => ShowTip(text, d));
+        et.triggers.Add(enter);
+        var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+        exit.callback.AddListener(_ => { if (_tip != null) _tip.SetActive(false); });
+        et.triggers.Add(exit);
+    }
+
+    private void ShowTip(string text, BaseEventData data)
+    {
+        if (_tip == null) return;
+        _tipText.text = Loc.T(text);
+        int lines = Mathf.Max(1, Mathf.CeilToInt(_tipText.text.Length / 38f));
+        float w = 360f, h = lines * 22f + 22f;
+        var rt = (RectTransform)_tip.transform;
+        rt.sizeDelta = new Vector2(w, h);
+        rt.pivot = new Vector2(0f, 1f);
+        var ped = data as PointerEventData;
+        Vector2 p = ped != null ? ped.position : new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        float x = p.x + 16f, top = p.y - 14f;
+        if (x + w > Screen.width) x = p.x - 16f - w;
+        if (top - h < 0f) top = h + 8f;
+        if (x < 4f) x = 4f;
+        rt.position = new Vector3(x, top, 0f);
+        _tip.SetActive(true);
+        _tip.transform.SetAsLastSibling();
     }
 
     // ---- primitives ----
@@ -201,7 +248,7 @@ internal sealed class PanelView
         return t;
     }
 
-    private void Btn(Transform parent, string name, float x, float y, float w, float h, Color bg, Color fg, string label, float fontSize, UnityEngine.Events.UnityAction onClick)
+    private void Btn(Transform parent, string name, float x, float y, float w, float h, Color bg, Color fg, string label, float fontSize, UnityEngine.Events.UnityAction onClick, string tip = null)
     {
         var img = Panel(parent, name, x, y, w, h, bg, 9);
         var btn = img.gameObject.AddComponent<Button>();
@@ -210,6 +257,7 @@ internal sealed class PanelView
         var t = MkText(img.transform, "Label", 0, 0, w, h, fontSize, fg, TextAnchor.MiddleCenter, FontStyle.Bold);
         t.text = label;
         Stretch(t.rectTransform);
+        AddTip(img.gameObject, tip);
     }
 
     private static void ApplyBtnColors(Button btn, Color bg)
@@ -228,7 +276,6 @@ internal sealed class PanelView
         rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero; rt.anchoredPosition = Vector2.zero;
     }
 
-    /// <summary>A white rounded-rect sprite with a 9-slice border, tinted per Image. Cached per radius.</summary>
     private static Sprite RoundedSprite(int radius)
     {
         if (_sprites.TryGetValue(radius, out var cached) && cached != null) return cached;
