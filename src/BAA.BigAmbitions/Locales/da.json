@@ -1,0 +1,18 @@
+{
+  "babot_header": "BA BOT — Automatisering",
+  "babot_master": "Automatisering (hovedkontakt)",
+  "babot_finance": "Finans: betal skat automatisk",
+  "babot_employees": "Medarbejdere: moralbonus & oplæring",
+  "babot_logistics": "Logistik: auto-import",
+  "babot_restock": "Auto-genopfyld hylder",
+  "babot_wellbeing": "Auto-velvære (energi & humør)",
+  "babot_servicefee": "Servicegebyr (valgfri udfordring)",
+  "babot_live": "LIVE-TILSTAND (fra = kun forhåndsvisning)",
+  "babot_reserve": "Kontant reservegrænse",
+  "babot_target": "Genopfyld mål (enheder)",
+  "babot_fee": "Servicegebyr pr. kørsel",
+  "babot_dollars": "${value}",
+  "babot_run": "Kør automatisering nu",
+  "babot_cash": "+$1.000 (test)",
+  "babot_energy": "Fyld energi til 100%"
+}

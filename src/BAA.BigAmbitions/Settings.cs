@@ -47,7 +47,6 @@ internal static class Settings
             cfg.ServiceFeePerRun  = M(kv, "ServiceFeePerRun", cfg.ServiceFeePerRun);
             cfg.RestockTarget     = I(kv, "RestockTarget", cfg.RestockTarget);
             cfg.Language          = kv.TryGetValue("Language", out var lang) ? lang : cfg.Language;
-            Loc.Current = cfg.Language == "da" ? Lang.Da : Lang.En;
         }
         catch (Exception ex) { Debug.LogWarning("[BA BOT] settings load failed: " + ex.Message); }
         _lastSig = Sig(cfg);

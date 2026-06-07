@@ -1,36 +1,30 @@
 using System.Threading.Tasks;
 using BAModAPI;
-using UnityEngine;
 
 [assembly: RegisterModClass(typeof(BaBot.ModMain))]
 
 namespace BaBot;
 
 /// <summary>
-/// Official Big Ambitions mod entry (EA 0.11+). Registered via the assembly attribute above and
-/// activated on city load. Spawns the persistent <see cref="BaBotBehaviour"/> host that runs the
-/// panel + automation, and tears it down on unload.
+/// Official Big Ambitions mod entry (EA 0.11+). Loaded once at initialization. All the work lives in
+/// <see cref="BaBotLogic"/>: it registers the control panel through the game's own OptionsService (so
+/// the game renders + persists it — no custom UI, which a runtime-loaded mod assembly can't host) and
+/// runs the automation engine on the in-game day/hour events.
 /// </summary>
-[ModEntryOnCityLoad]
+[ModEntryOnInitializationLoad]
 public sealed class ModMain : ModBigAmbitionsBase
 {
-    private GameObject _go;
+    private readonly BaBotLogic _logic = new();
 
     public override Task OnLoadAsync(ModContext context)
     {
-        try { context.Logger?.Info("BA BOT loading"); } catch { }
-        if (_go == null)
-        {
-            _go = new GameObject("BA BOT");
-            Object.DontDestroyOnLoad(_go);
-            _go.AddComponent<BaBotBehaviour>();
-        }
+        _logic.Initialize(context);
         return Task.CompletedTask;
     }
 
     public override Task OnUnloadAsync()
     {
-        if (_go != null) { Object.Destroy(_go); _go = null; }
+        _logic.Shutdown();
         return Task.CompletedTask;
     }
 }

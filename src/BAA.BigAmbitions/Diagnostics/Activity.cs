@@ -10,6 +10,8 @@ internal static class Activity
 
     public static void Add(string message)
     {
+        // Also surface to the Unity log so actions/previews are visible (Player.log) without a panel.
+        try { UnityEngine.Debug.Log("[BA BOT] " + message); } catch { }
         lock (_items)
         {
             _items.Insert(0, message);

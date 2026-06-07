@@ -1,0 +1,18 @@
+{
+  "babot_header": "BA BOT — Automation",
+  "babot_master": "Automation (master switch)",
+  "babot_finance": "Finance: auto-pay taxes",
+  "babot_employees": "Employees: morale bonuses & training",
+  "babot_logistics": "Logistics: auto-imports",
+  "babot_restock": "Auto-restock shelves",
+  "babot_wellbeing": "Auto-wellbeing (energy & happiness)",
+  "babot_servicefee": "Service fee (optional challenge)",
+  "babot_live": "LIVE MODE (off = preview only)",
+  "babot_reserve": "Cash reserve floor",
+  "babot_target": "Restock target (units)",
+  "babot_fee": "Service fee per run",
+  "babot_dollars": "${value}",
+  "babot_run": "Run automation now",
+  "babot_cash": "+$1,000 (test)",
+  "babot_energy": "Refill energy to 100%"
+}

@@ -23,12 +23,9 @@
 
   <ItemGroup>
     <!-- Do NOT reference the game's netstandard.dll facade: it cycles with the SDK's netstandard2.1
-         targeting pack, which already supplies the BCL (System.Object/Decimal/collections). -->
+         targeting pack, which already supplies the BCL. The panel is the game-rendered OptionsService
+         UI, so no UI/Input references are needed. -->
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(Managed)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(Managed)\UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(Managed)\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(Managed)\UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Unity.InputSystem"><HintPath>$(Managed)\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions.ModAPI"><HintPath>$(Managed)\BigAmbitions.ModAPI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions"><HintPath>$(Managed)\BigAmbitions.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions.Items"><HintPath>$(Managed)\BigAmbitions.Items.dll</HintPath><Private>false</Private></Reference>
