@@ -14,6 +14,9 @@ public interface IGameState
 
     IReadOnlyList<BusinessInfo> GetBusinesses();
     IReadOnlyList<InventoryLine> GetInventory(BusinessId business);
+
+    /// <summary>Per-product current vs. neighborhood-optimal price for a business (drives auto-pricing).</summary>
+    IReadOnlyList<PricingLine> GetPricing(BusinessId business);
     IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null);
     IReadOnlyList<CandidateInfo> GetCandidates();
     IReadOnlyList<WarehouseInfo> GetWarehouses();

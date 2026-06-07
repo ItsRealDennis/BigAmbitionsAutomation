@@ -42,7 +42,7 @@ internal sealed class PanelView
     private static readonly Color Dim     = new(0.66f, 0.73f, 0.82f, 1f);
     private static readonly Color TipBg   = new(0.04f, 0.06f, 0.09f, 0.98f);
 
-    private const float W = 540f, H = 700f, Pad = 22f;
+    private const float W = 540f, H = 732f, Pad = 22f;
 
     public bool Built => _root != null;
     public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) { _root.SetActive(v); if (!v && _tip != null) _tip.SetActive(false); } }
@@ -96,6 +96,7 @@ internal sealed class PanelView
             ("EMPLOYEES", () => cfg.EmployeesEnabled, v => cfg.EmployeesEnabled = v, "Morale bonus to unhappy staff when the game allows one, and finishes completed training."),
             ("LOGISTICS", () => cfg.LogisticsEnabled, v => cfg.LogisticsEnabled = v, "Sets up a repeating weekly import for any product running low so stock keeps flowing."),
             ("RESTOCK",   () => cfg.RestockEnabled,   v => cfg.RestockEnabled = v,   "Buys products back up to your target when shelves run low."),
+            ("PRICING",   () => cfg.PricingEnabled,   v => cfg.PricingEnabled = v,   "Auto-sets each product's price to the game's own optimal price for its neighborhood, keeping price-satisfaction high. Previews unless Live mode is on."),
             ("WELLBEING", () => cfg.WellbeingEnabled, v => cfg.WellbeingEnabled = v, "Automatically refills your energy and tops up happiness so you never stop to rest."),
             ("FEE",       () => cfg.ServiceFeeEnabled,v => cfg.ServiceFeeEnabled = v,"Optional challenge: charges cash each time the bot does work for you. Off = free."),
             ("LIVE MODE", () => cfg.LiveWrites,       v => cfg.LiveWrites = v,       "OFF (default) = automation only PREVIEWS what it would do (safe). ON = it actually pays taxes, restocks and gives bonuses. Turn on only while watching."),

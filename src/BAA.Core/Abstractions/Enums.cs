@@ -22,6 +22,7 @@ public enum ManagerPriority
 {
     Finance = 10,
     Logistics = 20,
+    Pricing = 25,
     Restock = 30,
     Employee = 40,
     TimeSkip = 90,

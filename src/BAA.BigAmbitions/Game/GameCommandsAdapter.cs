@@ -125,9 +125,40 @@ internal sealed class GameCommandsAdapter : IGameCommands
     public CommandResult SetWarehouseTarget(WarehouseId w, ItemId i, int target) => Preview($"warehouse target {target}x {i}");
     public CommandResult AssignLogistics(BusinessId b, EmployeeId m, IReadOnlyList<EmployeeId> drivers) => Preview("assign logistics");
 
+    // --- Pricing (live: write the business's stored retail price the same way the in-game UI does) ---
+    public CommandResult SetItemPrice(BusinessId business, ItemId item, decimal price)
+    {
+        if (price <= 0m) return CommandResult.Skipped("invalid price");
+        if (!_state.TryResolve(business, item, out var reg, out var name) || reg == null)
+            return CommandResult.Failed("could not resolve business/item");
+
+        if (!Live) return Preview($"set {name} price ${price:0.00}");
+
+        try
+        {
+            var list = reg.retailPrices;
+            if (list == null) return CommandResult.Failed("no retail price list");
+
+            RetailPrice rp = null;
+            for (int i = 0; i < list.Count; i++)
+                if (list[i] != null && list[i].itemName == name) { rp = list[i]; break; }
+
+            if (rp != null) rp.price = (float)price;
+            else list.Add(new RetailPrice { itemName = name, price = (float)price });
+
+            // Deliberately do NOT call BusinessHelper.UpdateSatisfaction here: it recomputes pricing-
+            // satisfaction from the LAST DAY's completed orders (each priced at the OLD price), so it
+            // can't reflect a not-yet-sold price and would only stale-overwrite. The game recomputes it
+            // correctly on the next daily tick (BusinessHelper.RunDaily), reading the new price live.
+            try { SaveGameManager.MarkChange(); } catch { }
+            Activity.Add($"Set {name} price ${price:0.00}");
+            return CommandResult.Applied();
+        }
+        catch (Exception ex) { return CommandResult.Failed("set price: " + ex.Message); }
+    }
+
     // --- Not used by current managers ---
     public CommandResult SetStockTarget(BusinessId b, ItemId i, int target) => CommandResult.Skipped("n/a");
-    public CommandResult SetItemPrice(BusinessId b, ItemId i, decimal price) => CommandResult.Skipped("n/a");
     public CommandResult HireCandidate(CandidateId c, BusinessId b) => Preview("hire candidate");
     public CommandResult SetWage(EmployeeId e, decimal wage) => Preview("set wage");
     public CommandResult SetSchedule(EmployeeId e, ScheduleSpec schedule) => CommandResult.Skipped("n/a");

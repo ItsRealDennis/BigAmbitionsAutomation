@@ -45,7 +45,18 @@ public sealed class FakeGameCommands : IGameCommands
         => Record($"SetStockTarget({business},{item},{target})");
 
     public CommandResult SetItemPrice(BusinessId business, ItemId item, decimal price)
-        => Record($"SetItemPrice({business},{item})");
+    {
+        // Record with an invariant 2-dp price so assertions are culture-safe, and mutate the world so
+        // multi-tick convergence (price reaches optimal then stops changing) is testable.
+        Calls.Add($"SetItemPrice({business},{item},{price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)})");
+        if (_world.Pricing.TryGetValue(business, out var lines))
+        {
+            var idx = lines.FindIndex(l => l.Item == item);
+            if (idx >= 0)
+                lines[idx] = lines[idx] with { CurrentPrice = price };
+        }
+        return CommandResult.Applied();
+    }
 
     // --- Logistics ---
 

@@ -73,3 +73,14 @@ public sealed record ImportContractInfo(
     int Quantity,
     DeliveryFrequency Frequency,
     string Supplier);
+
+/// <summary>
+/// One sellable product line for auto-pricing: what it currently sells for (the player's stored retail
+/// price, 0 if never set) and the game's own neighborhood-optimal price. <see cref="OptimalPrice"/> of 0
+/// means the game has no optimal for it (e.g. a raw material with no market price) — leave it alone.
+/// </summary>
+public sealed record PricingLine(
+    ItemId Item,
+    string ItemName,
+    decimal CurrentPrice,
+    decimal OptimalPrice);

@@ -79,7 +79,7 @@ public sealed class BaBotLogic
         var commands = new GameCommandsAdapter(_state, Config);
         var breakers = new ISafetyBreaker[] { new LowFundsBreaker(), new UnpaidRentBreaker(), new EmptyInventoryBreaker() };
         var gate = new SafetyGate(breakers);
-        var managers = new IAutomationManager[] { new FinanceManager(), new LogisticsManager(), new RestockManager(), new EmployeeManager() };
+        var managers = new IAutomationManager[] { new FinanceManager(), new LogisticsManager(), new PricingManager(), new RestockManager(), new EmployeeManager() };
         _engine = new OrchestrationEngine(managers, gate, commands, new ModLog());
     }
 

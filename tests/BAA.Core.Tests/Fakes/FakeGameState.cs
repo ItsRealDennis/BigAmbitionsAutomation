@@ -19,6 +19,7 @@ public sealed class FakeGameState : IGameState
 
     public List<BusinessInfo> Businesses { get; } = new();
     public Dictionary<BusinessId, List<InventoryLine>> Inventory { get; } = new();
+    public Dictionary<BusinessId, List<PricingLine>> Pricing { get; } = new();
     public Dictionary<BusinessId, List<EmployeeInfo>> Employees { get; } = new();
     public List<CandidateInfo> Candidates { get; } = new();
     public List<WarehouseInfo> Warehouses { get; } = new();
@@ -47,6 +48,9 @@ public sealed class FakeGameState : IGameState
 
     public IReadOnlyList<InventoryLine> GetInventory(BusinessId business)
         => Inventory.TryGetValue(business, out var lines) ? lines : new List<InventoryLine>();
+
+    public IReadOnlyList<PricingLine> GetPricing(BusinessId business)
+        => Pricing.TryGetValue(business, out var lines) ? lines : new List<PricingLine>();
 
     public IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null)
     {

@@ -46,6 +46,8 @@ internal static class Settings
             cfg.CashReserveFloor  = M(kv, "CashReserveFloor", cfg.CashReserveFloor);
             cfg.ServiceFeePerRun  = M(kv, "ServiceFeePerRun", cfg.ServiceFeePerRun);
             cfg.RestockTarget     = I(kv, "RestockTarget", cfg.RestockTarget);
+            cfg.PricingEnabled    = B(kv, "PricingEnabled", cfg.PricingEnabled);
+            cfg.PricingTargetPercent = M(kv, "PricingTargetPercent", cfg.PricingTargetPercent);
             cfg.Language          = kv.TryGetValue("Language", out var lang) ? lang : cfg.Language;
             UiPrefs.Scale = F(kv, "UiScale", UiPrefs.Scale);
             UiPrefs.PosX  = F(kv, "UiPosX", UiPrefs.PosX);
@@ -84,6 +86,8 @@ internal static class Settings
         "CashReserveFloor="  + c.CashReserveFloor.ToString(CultureInfo.InvariantCulture),
         "ServiceFeePerRun="  + c.ServiceFeePerRun.ToString(CultureInfo.InvariantCulture),
         "RestockTarget="     + c.RestockTarget.ToString(CultureInfo.InvariantCulture),
+        "PricingEnabled="    + c.PricingEnabled,
+        "PricingTargetPercent=" + c.PricingTargetPercent.ToString(CultureInfo.InvariantCulture),
         "Language="          + c.Language,
         "UiScale="           + UiPrefs.Scale.ToString(CultureInfo.InvariantCulture),
         "UiPosX="            + UiPrefs.PosX.ToString(CultureInfo.InvariantCulture),

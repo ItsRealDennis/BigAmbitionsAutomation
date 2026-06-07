@@ -18,11 +18,19 @@ public sealed class AutomationConfig
     public bool FinanceEnabled { get; set; }
     public bool TimeSkipEnabled { get; set; }
 
+    /// <summary>Master switch for auto-pricing: keep each product at the game's neighborhood-optimal
+    /// price. Off by default. Reads/writes the same retail price the in-game pricing UI uses.</summary>
+    public bool PricingEnabled { get; set; }
+
     /// <summary>Keep the player's energy topped up automatically (instant QoL, no business needed).</summary>
     public bool WellbeingEnabled { get; set; }
 
     /// <summary>Target shelf level each product is restocked up to.</summary>
     public int RestockTarget { get; set; } = 20;
+
+    /// <summary>Auto-pricing target as a percentage of the game's optimal price. 100 = exactly optimal;
+    /// below 100 undercuts rivals, above 100 runs a premium. Clamped to a sane floor of 100 if &lt;= 0.</summary>
+    public decimal PricingTargetPercent { get; set; } = 100m;
 
     /// <summary>
     /// Gate for money-spending / state-changing game writes (auto-pay taxes, staff bonuses, restock).
@@ -69,4 +77,7 @@ public sealed class PerBusinessConfig
     /// <summary>Whether this business participates when restock is enabled globally. Defaults true,
     /// so flipping the master switch affects all businesses unless one is explicitly opted out.</summary>
     public bool RestockEnabled { get; set; } = true;
+
+    /// <summary>Whether this business participates when auto-pricing is enabled globally. Defaults true.</summary>
+    public bool PricingEnabled { get; set; } = true;
 }

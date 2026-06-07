@@ -30,6 +30,16 @@ public sealed class WorldBuilder
         return this;
     }
 
+    /// <summary>Add a sellable product with a current retail price and the game's optimal price (for pricing tests).</summary>
+    public WorldBuilder Price(string businessId, string item, decimal current, decimal optimal)
+    {
+        var bid = new BusinessId(businessId);
+        if (!_world.Pricing.ContainsKey(bid))
+            _world.Pricing[bid] = new List<PricingLine>();
+        _world.Pricing[bid].Add(new PricingLine(new ItemId(item), item, current, optimal));
+        return this;
+    }
+
     public WorldBuilder Tax(decimal due)
     {
         _world.TaxDue = due;

@@ -116,6 +116,47 @@ internal sealed class GameStateAdapter : IGameState
         return lines;
     }
 
+    public IReadOnlyList<PricingLine> GetPricing(BusinessId business)
+    {
+        var lines = new List<PricingLine>();
+        if (!_regs.TryGetValue(business, out var reg) || reg == null)
+            return lines;
+
+        string hood = null;
+        try { hood = reg.Neighborhood; } catch { }
+
+        List<string> sale = null;
+        try { sale = reg.GetListOfItemsForSale(); } catch { }
+        if (sale == null)
+            return lines;
+
+        for (int j = 0; j < sale.Count; j++)
+        {
+            var name = sale[j];
+            if (string.IsNullOrEmpty(name)) continue;
+
+            // Current = the player's STORED retail price (0 if never set), read the same way we write it
+            // in SetItemPrice, so the engine's compare/apply converges exactly. (ItemHelper.GetPrice would
+            // fall back to default-market for unset items, which we deliberately want to treat as "unset".)
+            decimal current = 0m;
+            try
+            {
+                var rps = reg.retailPrices;
+                if (rps != null)
+                    for (int k = 0; k < rps.Count; k++)
+                        if (rps[k] != null && rps[k].itemName == name) { current = (decimal)rps[k].price; break; }
+            }
+            catch { }
+
+            decimal optimal = 0m;
+            try { if (!string.IsNullOrEmpty(hood)) optimal = (decimal)ItemHelper.CalculateOptimalPriceByNeighborhood(name, hood); } catch { }
+            if (optimal < 0m) optimal = 0m;
+
+            lines.Add(new PricingLine(new ItemId(name), name, current, optimal));
+        }
+        return lines;
+    }
+
     /// <summary>Resolve a (business, item) decided by the engine back to the live registration + name.
     /// Item identity is the string name, so it round-trips directly through ItemId.Value.</summary>
     public bool TryResolve(BusinessId b, ItemId item, out BuildingRegistration reg, out string itemName)
