@@ -44,7 +44,11 @@ public sealed class BaBotLogic
         try { Settings.Load(Config); } catch (Exception ex) { Debug.LogWarning("[BA BOT] settings load: " + ex.Message); }
         EnsureEngine();
 
-        try { _panel.Build(Config, () => RunAutomation("manual")); _panel.SetVisible(false); }
+        try
+        {
+            _panel.Build(Config, () => RunAutomation("manual"), () => { _visible = false; _panel.SetVisible(false); });
+            _panel.SetVisible(false);
+        }
         catch (Exception ex) { Debug.LogError("[BA BOT] panel build failed: " + ex); }
 
         UnityLifecycleProvider.OnUpdate += OnFrame;
