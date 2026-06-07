@@ -44,7 +44,7 @@ internal sealed class PanelView
     private static readonly Color Dim     = new(0.66f, 0.73f, 0.82f, 1f);
     private static readonly Color TipBg   = new(0.04f, 0.06f, 0.09f, 0.98f);
 
-    private const float W = 540f, H = 732f, Pad = 22f;
+    private const float W = 540f, H = 776f, Pad = 22f;
 
     public bool Built => _root != null;
     public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) { _root.SetActive(v); if (!v && _tip != null) _tip.SetActive(false); } }
@@ -104,6 +104,7 @@ internal sealed class PanelView
             ("WELLBEING", () => cfg.WellbeingEnabled, v => cfg.WellbeingEnabled = v, "Automatically refills your energy and tops up happiness so you never stop to rest."),
             ("FEE",       () => cfg.ServiceFeeEnabled,v => cfg.ServiceFeeEnabled = v,"Optional challenge: charges cash each time the bot does work for you. Off = free."),
             ("LIVE MODE", () => cfg.LiveWrites,       v => cfg.LiveWrites = v,       "OFF (default) = automation only PREVIEWS what it would do (safe). ON = it actually pays taxes, restocks and gives bonuses. Turn on only while watching."),
+            ("TURBO",     () => GameActions.TurboOn,  v => GameActions.SetTurbo(v, cfg.TurboPercent), "AFK accelerator: speeds game time to TURBO SPEED (below) so days pass fast and the daily automation runs while you're away. No cash, no risk. Turn off for normal speed."),
         };
         float colW = (W - 2 * Pad - 14) / 2f;
         float gy = y;
@@ -125,14 +126,19 @@ internal sealed class PanelView
         AddStepper(win, ref y, () => $"{Loc.T("FEE / RUN")}   ${cfg.ServiceFeePerRun:N0}",
             () => cfg.ServiceFeePerRun = Math.Max(0m, cfg.ServiceFeePerRun - 50m), () => cfg.ServiceFeePerRun += 50m,
             "Cash charged per automation run when Service Fee is on.");
+        AddStepper(win, ref y, () => $"{Loc.T("TURBO SPEED")}   {cfg.TurboPercent}%",
+            () => { cfg.TurboPercent = Math.Max(100, cfg.TurboPercent - 50); if (GameActions.TurboOn) GameActions.SetTurbo(true, cfg.TurboPercent); },
+            () => { cfg.TurboPercent = Math.Min(1000, cfg.TurboPercent + 50); if (GameActions.TurboOn) GameActions.SetTurbo(true, cfg.TurboPercent); },
+            "How fast the TURBO accelerator runs, as a percent of normal. 300 = 3x.");
         y += 12;
 
         Btn(win, "RunNow", Pad, y, W - 2 * Pad, 46, Blue, White, Loc.T("RUN NOW"), 18, () => { try { runNow(); } catch { } },
             "Runs one automation pass now. Turn on MASTER + the features you want first. Previews unless Live mode is on.");
         y += 56;
-        float hw = (W - 2 * Pad - 12) / 2f;
-        Btn(win, "Cash", Pad, y, hw, 40, Green, White, "+$1,000", 16, () => GameActions.AddMoney(1000f), "Instantly add $1,000 cash (handy for testing).");
-        Btn(win, "Energy", Pad + hw + 12, y, hw, 40, Blue, White, Loc.T("ENERGY 100%"), 16, GameActions.RefillEnergy, "Instantly refill your energy to full.");
+        float tw = (W - 2 * Pad - 24) / 3f;
+        Btn(win, "Cash", Pad, y, tw, 40, Green, White, "+$1,000", 15, () => GameActions.AddMoney(1000f), "Instantly add $1,000 cash (handy for testing).");
+        Btn(win, "Energy", Pad + tw + 12, y, tw, 40, Blue, White, Loc.T("ENERGY"), 15, GameActions.RefillEnergy, "Instantly refill your energy to full.");
+        Btn(win, "Skip", Pad + 2 * (tw + 12), y, tw, 40, RowBg, White, Loc.T("SKIP DAY"), 15, GameActions.SkipToMorning, "Fast-forward to the next morning (08:00). Crossing midnight runs the daily automation, so the bot works while you skip.");
 
         // Tooltip box (hidden until hover)
         var tipImg = Panel(_root.transform, "Tip", 0, 0, 360, 96, TipBg, 8);

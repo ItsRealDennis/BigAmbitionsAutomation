@@ -69,6 +69,7 @@ public sealed class BaBotLogic
             _subscribed = false;
         }
         try { _panel.Destroy(); } catch { }
+        try { GameActions.ResetTurbo(); } catch { } // never leave the game stuck at turbo speed after unload
         try { Settings.SaveIfChanged(Config); } catch { }
     }
 

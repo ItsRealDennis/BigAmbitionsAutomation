@@ -48,6 +48,7 @@ internal static class Settings
             cfg.RestockTarget     = I(kv, "RestockTarget", cfg.RestockTarget);
             cfg.PricingEnabled    = B(kv, "PricingEnabled", cfg.PricingEnabled);
             cfg.PricingTargetPercent = M(kv, "PricingTargetPercent", cfg.PricingTargetPercent);
+            cfg.TurboPercent      = I(kv, "TurboPercent", cfg.TurboPercent);
             cfg.Language          = kv.TryGetValue("Language", out var lang) ? lang : cfg.Language;
             UiPrefs.Scale = F(kv, "UiScale", UiPrefs.Scale);
             UiPrefs.PosX  = F(kv, "UiPosX", UiPrefs.PosX);
@@ -88,6 +89,7 @@ internal static class Settings
         "RestockTarget="     + c.RestockTarget.ToString(CultureInfo.InvariantCulture),
         "PricingEnabled="    + c.PricingEnabled,
         "PricingTargetPercent=" + c.PricingTargetPercent.ToString(CultureInfo.InvariantCulture),
+        "TurboPercent="      + c.TurboPercent.ToString(CultureInfo.InvariantCulture),
         "Language="          + c.Language,
         "UiScale="           + UiPrefs.Scale.ToString(CultureInfo.InvariantCulture),
         "UiPosX="            + UiPrefs.PosX.ToString(CultureInfo.InvariantCulture),

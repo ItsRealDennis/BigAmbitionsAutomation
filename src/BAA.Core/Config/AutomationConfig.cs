@@ -32,6 +32,9 @@ public sealed class AutomationConfig
     /// below 100 undercuts rivals, above 100 runs a premium. Clamped to a sane floor of 100 if &lt;= 0.</summary>
     public decimal PricingTargetPercent { get; set; } = 100m;
 
+    /// <summary>AFK time-accelerator speed as a percentage of normal (300 = 3x). QoL only, never spends cash.</summary>
+    public int TurboPercent { get; set; } = 300;
+
     /// <summary>
     /// Gate for money-spending / state-changing game writes (auto-pay taxes, staff bonuses, restock).
     /// <b>Off by default</b>: every such action only previews (logs what it WOULD do) until the player

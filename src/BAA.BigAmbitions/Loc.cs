@@ -27,6 +27,7 @@ internal static class Loc
         ["AUTOMATION (MASTER)"] = "AUTOMATION (HOVED)", ["AUTO-RESTOCK"] = "AUTO-GENOPFYLD",
         ["LOGISTICS"] = "LOGISTIK", ["EMPLOYEES"] = "MEDARBEJDERE", ["FINANCE AUTO-PAY"] = "FINANS AUTO-BETAL",
         ["AUTO-WELLBEING"] = "AUTO-VELVÆRE", ["SERVICE FEE"] = "SERVICEGEBYR",
+        ["ENERGY"] = "ENERGI", ["SKIP DAY"] = "SPRING DAG OVER", ["TURBO SPEED"] = "TURBOFART",
         ["Auto-sets each product's price to the game's own optimal price for its neighborhood, keeping price-satisfaction high. Previews unless Live mode is on."]
             = "Sætter automatisk hver vares pris til spillets egen optimale pris for kvarteret, så pristilfredsheden holdes høj. Forhåndsvisning medmindre Live-tilstand er slået til.",
     };
