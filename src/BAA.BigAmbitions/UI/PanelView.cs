@@ -39,7 +39,7 @@ internal sealed class PanelView
     private static readonly Color Dim     = new(0.66f, 0.73f, 0.82f, 1f);
     private static readonly Color Dark    = new(0.05f, 0.10f, 0.14f, 1f);
 
-    private const float W = 460f, H = 880f, Pad = 20f;
+    private const float W = 480f, H = 900f, Pad = 20f;
 
     public bool Built => _root != null;
     public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) _root.SetActive(v); }
@@ -57,7 +57,7 @@ internal sealed class PanelView
         canvas.sortingOrder = 30000;
         var scaler = _root.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.referenceResolution = new Vector2(1920, 960); // lower ref height => larger UI (~1.5x at 1440p)
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 1f; // scale by height — consistent on ultrawide
         _root.AddComponent<GraphicRaycaster>();
@@ -94,12 +94,12 @@ internal sealed class PanelView
             () => cfg.ServiceFeePerRun = Math.Max(0m, cfg.ServiceFeePerRun - 50m), () => cfg.ServiceFeePerRun += 50m);
         y += 10;
 
-        Btn(win, "RunNow", Pad, y, W - 2 * Pad, 34, Blue, White, Loc.T("RUN NOW"), 15, () => { try { runNow(); } catch { } });
-        y += 42;
+        Btn(win, "RunNow", Pad, y, W - 2 * Pad, 42, Blue, White, Loc.T("RUN NOW"), 16, () => { try { runNow(); } catch { } });
+        y += 50;
         float hw = (W - 2 * Pad - 10) / 2f;
-        Btn(win, "Cash", Pad, y, hw, 30, Green, White, "+$1,000", 13, () => GameActions.AddMoney(1000f));
-        Btn(win, "Energy", Pad + hw + 10, y, hw, 30, Blue, White, Loc.T("ENERGY 100%"), 13, GameActions.RefillEnergy);
-        y += 40;
+        Btn(win, "Cash", Pad, y, hw, 36, Green, White, "+$1,000", 14, () => GameActions.AddMoney(1000f));
+        Btn(win, "Energy", Pad + hw + 10, y, hw, 36, Blue, White, Loc.T("ENERGY 100%"), 14, GameActions.RefillEnergy);
+        y += 46;
 
         MkText(win, "ActLbl", Pad, y, W - 2 * Pad, 16, 12, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("ACTIVITY");
         y += 20;
@@ -162,11 +162,11 @@ internal sealed class PanelView
 
     private void AddStepper(Transform win, ref float y, Func<string> format, Action minus, Action plus)
     {
-        var lbl = MkText(win, "steplbl", Pad + 2, y + 5, W - 2 * Pad - 92, 26, 15, White, TextAnchor.MiddleLeft, FontStyle.Bold);
-        Btn(win, "Minus", W - Pad - 80, y, 36, 30, RowBg, White, "−", 18, () => { try { minus(); } catch { } });
-        Btn(win, "Plus", W - Pad - 40, y, 36, 30, RowBg, White, "+", 18, () => { try { plus(); } catch { } });
+        var lbl = MkText(win, "steplbl", Pad + 2, y + 6, W - 2 * Pad - 100, 30, 16, White, TextAnchor.MiddleLeft, FontStyle.Bold);
+        Btn(win, "Minus", W - Pad - 86, y, 40, 32, RowBg, White, "-", 22, () => { try { minus(); } catch { } });
+        Btn(win, "Plus", W - Pad - 42, y, 40, 32, RowBg, White, "+", 22, () => { try { plus(); } catch { } });
         _steppers.Add(new StepRow { Label = lbl, Format = format });
-        y += 36;
+        y += 40;
     }
 
     // ---- primitives ----
@@ -208,6 +208,7 @@ internal sealed class PanelView
         btn.targetGraphic = img; ApplyBtnColors(btn, bg);
         btn.onClick.AddListener(onClick);
         var t = MkText(img.transform, "Label", 0, 0, w, h, fontSize, fg, TextAnchor.MiddleCenter, FontStyle.Bold);
+        t.text = label;
         Stretch(t.rectTransform);
     }
 
