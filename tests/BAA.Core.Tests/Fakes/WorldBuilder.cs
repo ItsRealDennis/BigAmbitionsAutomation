@@ -47,6 +47,13 @@ public sealed class WorldBuilder
         return this;
     }
 
+    /// <summary>Add a wholesale delivery contract for auto-logistics tests.</summary>
+    public WorldBuilder Contract(string id, string businessId, bool enabled, bool repeating, decimal costPerDelivery, int itemCount = 1)
+    {
+        _world.Contracts.Add(new ContractInfo(new ContractId(id), new BusinessId(businessId), enabled, repeating, costPerDelivery, itemCount));
+        return this;
+    }
+
     public WorldBuilder Tax(decimal due)
     {
         _world.TaxDue = due;

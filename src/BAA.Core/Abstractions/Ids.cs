@@ -11,3 +11,4 @@ public readonly record struct CandidateId(string Value) { public override string
 public readonly record struct WarehouseId(string Value) { public override string ToString() => Value ?? ""; }
 public readonly record struct LoanId(string Value) { public override string ToString() => Value ?? ""; }
 public readonly record struct ImportContractId(string Value) { public override string ToString() => Value ?? ""; }
+public readonly record struct ContractId(string Value) { public override string ToString() => Value ?? ""; }

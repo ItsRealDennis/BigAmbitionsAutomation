@@ -63,6 +63,14 @@ public sealed class FakeGameCommands : IGameCommands
     public CommandResult ConfigureImportContract(ImportContractSpec spec)
         => Record($"ConfigureImportContract({spec.Item},{spec.Quantity})");
 
+    public CommandResult SetContractRepeating(ContractId contract, bool repeating)
+    {
+        Calls.Add($"SetContractRepeating({contract},{repeating})");
+        var idx = _world.Contracts.FindIndex(c => c.Id == contract);
+        if (idx >= 0) _world.Contracts[idx] = _world.Contracts[idx] with { Repeating = repeating };
+        return CommandResult.Applied();
+    }
+
     public CommandResult SetWarehouseTarget(WarehouseId warehouse, ItemId item, int target)
         => Record($"SetWarehouseTarget({warehouse},{item},{target})");
 

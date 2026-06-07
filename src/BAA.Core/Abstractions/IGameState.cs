@@ -20,6 +20,9 @@ public interface IGameState
 
     /// <summary>Staffing state for a business (drives auto-scheduling). Never null.</summary>
     StaffingInfo GetStaffing(BusinessId business);
+
+    /// <summary>The player's wholesale delivery contracts (drives auto-logistics). Never null.</summary>
+    IReadOnlyList<ContractInfo> GetContracts();
     IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null);
     IReadOnlyList<CandidateInfo> GetCandidates();
     IReadOnlyList<WarehouseInfo> GetWarehouses();

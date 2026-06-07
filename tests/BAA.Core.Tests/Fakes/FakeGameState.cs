@@ -25,6 +25,7 @@ public sealed class FakeGameState : IGameState
     public List<CandidateInfo> Candidates { get; } = new();
     public List<WarehouseInfo> Warehouses { get; } = new();
     public List<ImportContractInfo> ImportContracts { get; } = new();
+    public List<ContractInfo> Contracts { get; } = new();
 
     /// <summary>Income waiting to be collected per business (used by finance tests).</summary>
     public Dictionary<BusinessId, decimal> PendingIncome { get; } = new();
@@ -55,6 +56,8 @@ public sealed class FakeGameState : IGameState
 
     public StaffingInfo GetStaffing(BusinessId business)
         => Staffing.TryGetValue(business, out var s) ? s : new StaffingInfo(0, 0);
+
+    public IReadOnlyList<ContractInfo> GetContracts() => Contracts;
 
     public IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null)
     {

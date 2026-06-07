@@ -139,6 +139,21 @@ internal sealed class GameCommandsAdapter : IGameCommands
     // --- Logistics: previewed (recurring import contracts are stateful; kept preview for now) ---
     public CommandResult ConfigureImportContract(ImportContractSpec spec)
         => Preview($"import contract {spec.Quantity}x {spec.Item}");
+
+    public CommandResult SetContractRepeating(ContractId contract, bool repeating)
+    {
+        if (!_state.TryResolveContract(contract, out var c) || c == null)
+            return CommandResult.Failed("could not resolve contract");
+        if (!Live) return Preview(repeating ? "make import contract recurring" : "stop import contract recurring");
+        try
+        {
+            c.repeatingOrder = repeating;
+            try { SaveGameManager.MarkChange(); } catch { }
+            Activity.Add(repeating ? "Import contract set to recurring" : "Import contract recurring off");
+            return CommandResult.Applied();
+        }
+        catch (Exception ex) { return CommandResult.Failed("contract: " + ex.Message); }
+    }
     public CommandResult SetWarehouseTarget(WarehouseId w, ItemId i, int target) => Preview($"warehouse target {target}x {i}");
     public CommandResult AssignLogistics(BusinessId b, EmployeeId m, IReadOnlyList<EmployeeId> drivers) => Preview("assign logistics");
 

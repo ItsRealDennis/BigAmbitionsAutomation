@@ -91,3 +91,14 @@ public sealed record StaffingInfo(int AssignedEmployees, int UnscheduledEmployee
 {
     public bool NeedsSchedule => UnscheduledEmployees > 0;
 }
+
+/// <summary>A wholesale delivery contract belonging to a player business. <see cref="CostPerDelivery"/>
+/// is the projected per-delivery charge, used to decide whether committing to a recurring bill is
+/// affordable (drives auto-logistics).</summary>
+public sealed record ContractInfo(
+    ContractId Id,
+    BusinessId Business,
+    bool Enabled,
+    bool Repeating,
+    decimal CostPerDelivery,
+    int ItemCount);

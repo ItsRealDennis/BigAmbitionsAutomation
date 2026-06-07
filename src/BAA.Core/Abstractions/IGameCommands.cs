@@ -14,6 +14,9 @@ public interface IGameCommands
 
     // --- Logistics ---
     CommandResult ConfigureImportContract(ImportContractSpec spec);
+
+    /// <summary>Make an existing wholesale delivery contract recur weekly (or stop) - the auto-logistics action.</summary>
+    CommandResult SetContractRepeating(ContractId contract, bool repeating);
     CommandResult SetWarehouseTarget(WarehouseId warehouse, ItemId item, int target);
     CommandResult AssignLogistics(BusinessId business, EmployeeId manager, IReadOnlyList<EmployeeId> drivers);
 

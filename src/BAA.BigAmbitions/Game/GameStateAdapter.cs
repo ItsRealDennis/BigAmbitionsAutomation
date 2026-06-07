@@ -16,6 +16,7 @@ internal sealed class GameStateAdapter : IGameState
     private readonly AutomationConfig _config;
     private readonly Dictionary<BusinessId, BuildingRegistration> _regs = new();
     private readonly Dictionary<EmployeeId, Entities.EmployeeInstance> _emps = new();
+    private readonly Dictionary<ContractId, Entities.DeliveryContract> _contracts = new();
 
     public GameStateAdapter(AutomationConfig config) => _config = config;
 
@@ -197,6 +198,49 @@ internal sealed class GameStateAdapter : IGameState
     /// <summary>Resolve a business id back to its live registration.</summary>
     public bool TryResolveBusiness(BusinessId b, out BuildingRegistration reg)
         => _regs.TryGetValue(b, out reg);
+
+    public IReadOnlyList<ContractInfo> GetContracts()
+    {
+        _contracts.Clear();
+        var list = new List<ContractInfo>();
+        var gi = SaveGameManager.Current;
+        var contracts = gi != null ? gi.DeliveryContracts : null;
+        if (contracts == null) return list;
+
+        int idx = 0;
+        for (int i = 0; i < contracts.Count; i++)
+        {
+            var c = contracts[i];
+            if (c == null) continue;
+
+            BuildingRegistration reg = null;
+            try { reg = Helpers.BuildingHelper.GetBuildingRegistration(c.businessAddress); } catch { }
+            if (reg == null) continue;
+            bool mine = false;
+            try { mine = reg.RentedByPlayer || reg.BuildingOwnedByPlayer; } catch { }
+            if (!mine) continue;
+
+            // Map back to a BusinessId if this business is in the current cache (else default).
+            var bid = default(BusinessId);
+            foreach (var kv in _regs) { if (kv.Value == reg) { bid = kv.Key; break; } }
+
+            decimal cost = 0m;
+            try { cost = (decimal)c.TotalPricePerDelivery; } catch { }
+            int items = 0;
+            try { items = c.items != null ? c.items.Count : 0; } catch { }
+            bool enabled = false, repeating = false;
+            try { enabled = c.enabled; } catch { }
+            try { repeating = c.repeatingOrder; } catch { }
+
+            var id = new ContractId("c" + idx++);
+            _contracts[id] = c;
+            list.Add(new ContractInfo(id, bid, enabled, repeating, cost, items));
+        }
+        return list;
+    }
+
+    public bool TryResolveContract(ContractId id, out Entities.DeliveryContract contract)
+        => _contracts.TryGetValue(id, out contract);
 
     public IReadOnlyList<EmployeeInfo> GetEmployees(BusinessId? scope = null)
     {
