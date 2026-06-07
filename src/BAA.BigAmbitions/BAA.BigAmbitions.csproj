@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The official Big Ambitions (EA 0.11+, Mono) mod. References the game's managed assemblies
+       directly (Private=false: the game provides them at runtime) and reuses BAA.Core (the brain).
+       Builds to netstandard2.1 so it loads in the game's Unity 2022.3 Mono runtime. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>BAA.BigAmbitions</AssemblyName>
+    <RootNamespace>BaBot</RootNamespace>
+    <!-- Unity code mixes UnityEngine.{Object,Random,Debug} with System.*; turn off implicit usings
+         and nullable to avoid ambiguity and keep the source Unity-idiomatic. -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <BigAmbitionsDir Condition="'$(BigAmbitionsDir)'==''">$(BIG_AMBITIONS_DIR)</BigAmbitionsDir>
+    <BigAmbitionsDir Condition="'$(BigAmbitionsDir)'==''">C:\Program Files (x86)\Steam\steamapps\common\Big Ambitions</BigAmbitionsDir>
+    <Managed>$(BigAmbitionsDir)\Big Ambitions_Data\Managed</Managed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BAA.Core\BAA.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Do NOT reference the game's netstandard.dll facade: it cycles with the SDK's netstandard2.1
+         targeting pack, which already supplies the BCL (System.Object/Decimal/collections). -->
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(Managed)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(Managed)\UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(Managed)\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(Managed)\UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(Managed)\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BigAmbitions.ModAPI"><HintPath>$(Managed)\BigAmbitions.ModAPI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BigAmbitions"><HintPath>$(Managed)\BigAmbitions.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BigAmbitions.Items"><HintPath>$(Managed)\BigAmbitions.Items.dll</HintPath><Private>false</Private></Reference>
+    <!-- GameManager : InstanceBehavior<GameManager> — base type lives here -->
+    <Reference Include="HGExtensions"><HintPath>$(Managed)\HGExtensions.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+</Project>

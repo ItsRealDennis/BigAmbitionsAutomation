@@ -3,7 +3,9 @@
   <!-- THE BRAIN. Zero game references on purpose: `using Il2Cpp...` will not
        compile here, which enforces the adapter boundary at the compiler level. -->
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <!-- netstandard2.1 so the same brain DLL loads in the game's Unity Mono runtime (EA 0.11+)
+         and is still consumable by the net8 test project. -->
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>BAA.Core</AssemblyName>
     <RootNamespace>BAA.Core</RootNamespace>
   </PropertyGroup>

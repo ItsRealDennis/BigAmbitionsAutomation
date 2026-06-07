@@ -7,4 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
+
+  <!-- netstandard2.1 (the Unity Mono mod target) needs an IsExternalInit shim for records/init. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Include="$(MSBuildThisFileDirectory)build\Polyfills\IsExternalInit.cs" />
+  </ItemGroup>
 </Project>
