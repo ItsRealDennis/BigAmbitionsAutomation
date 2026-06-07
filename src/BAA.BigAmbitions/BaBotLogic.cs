@@ -5,73 +5,67 @@ using BAA.Core.Managers;
 using BAA.Core.Safety;
 using BAA.Core.Safety.Breakers;
 using BAModAPI;
+using BAModAPI.Services;
 using BaBot.Diagnostics;
 using BaBot.Game;
-using BigAmbitions.Mods;
+using BaBot.UI;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace BaBot;
 
 /// <summary>
-/// The mod's brain wiring. Registers BA BOT's controls through the game's OptionsService (toggles /
-/// sliders / buttons that the game draws in Mods &gt; Options and auto-persists by id), and drives the
-/// Core orchestration engine on GlobalEvents.onNewDay. Auto-wellbeing runs hourly. Everything is
-/// safety-gated, default-OFF, and money writes only execute when LIVE MODE is on.
+/// The mod brain + in-game overlay host. Builds the F8 uGUI panel (engine components only) and drives
+/// it from the official UnityLifecycleProvider.OnUpdate hook — so there is NO MonoBehaviour of ours
+/// (which Unity can't instantiate from a runtime-loaded mod). Automation runs on GlobalEvents.onNewDay,
+/// gated by the Core safety gate + the LIVE MODE switch; everything is default-OFF and preview-first.
 /// </summary>
 public sealed class BaBotLogic
 {
-    private static readonly AutomationConfig Config = new();
+    internal static readonly AutomationConfig Config = new();
 
-    private ModContext _ctx;
+    private readonly PanelView _panel = new();
+    private GameSnapshot _snapshot;
+    private bool _visible;
+    private float _refreshTimer;
+    private float _sinceWellbeing = 99f;
+    private bool _loggedFrameError;
+    private bool _wasVisible;
+    private CursorLockMode _savedLock;
+    private bool _savedCursorVisible;
+    private bool _subscribed;
+
     private OrchestrationEngine _engine;
     private GameStateAdapter _state;
     private GameClockAdapter _clock;
-    private bool _subscribed;
 
     public void Initialize(ModContext ctx)
     {
-        _ctx = ctx;
-        try { Settings.Load(Config); } catch (Exception ex) { UnityEngine.Debug.LogWarning("[BA BOT] settings load: " + ex.Message); }
+        try { Settings.Load(Config); } catch (Exception ex) { Debug.LogWarning("[BA BOT] settings load: " + ex.Message); }
         EnsureEngine();
 
-        var options = new ModOptions()
-            .AddHeader("babot_header")
-            .AddToggle("babot_master", "babot_master", Config.MasterEnabled, v => { Config.MasterEnabled = v; Save(); })
-            .AddToggle("babot_finance", "babot_finance", Config.FinanceEnabled, v => { Config.FinanceEnabled = v; Save(); })
-            .AddToggle("babot_employees", "babot_employees", Config.EmployeesEnabled, v => { Config.EmployeesEnabled = v; Save(); })
-            .AddToggle("babot_logistics", "babot_logistics", Config.LogisticsEnabled, v => { Config.LogisticsEnabled = v; Save(); })
-            .AddToggle("babot_restock", "babot_restock", Config.RestockEnabled, v => { Config.RestockEnabled = v; Save(); })
-            .AddToggle("babot_wellbeing", "babot_wellbeing", Config.WellbeingEnabled, v => { Config.WellbeingEnabled = v; Save(); })
-            .AddToggle("babot_servicefee", "babot_servicefee", Config.ServiceFeeEnabled, v => { Config.ServiceFeeEnabled = v; Save(); })
-            .AddToggle("babot_live", "babot_live", Config.LiveWrites, v => { Config.LiveWrites = v; Save(); })
-            .AddSlider("babot_reserve", "babot_reserve", 0, 100000, (int)Config.CashReserveFloor, v => { Config.CashReserveFloor = v; Save(); }, "babot_dollars")
-            .AddSlider("babot_target", "babot_target", 1, 100, Config.RestockTarget, v => { Config.RestockTarget = v; Save(); })
-            .AddSlider("babot_fee", "babot_fee", 0, 5000, (int)Config.ServiceFeePerRun, v => { Config.ServiceFeePerRun = v; Save(); }, "babot_dollars")
-            .AddButton("babot_run", () => RunAutomation("manual"))
-            .AddButton("babot_cash", () => GameActions.AddMoney(1000f))
-            .AddButton("babot_energy", () => GameActions.RefillEnergy())
-            .AddSplitter();
+        try { _panel.Build(Config, () => RunAutomation("manual")); _panel.SetVisible(false); }
+        catch (Exception ex) { Debug.LogError("[BA BOT] panel build failed: " + ex); }
 
-        try { OptionsService.Register(ctx.ModId, options); } catch (Exception ex) { UnityEngine.Debug.LogError("[BA BOT] options register: " + ex.Message); }
-
+        UnityLifecycleProvider.OnUpdate += OnFrame;
         GlobalEvents.onNewDay += OnNewDay;
-        GlobalEvents.onNewHour += OnNewHour;
         _subscribed = true;
-        ctx.Logger.Info("BA BOT loaded - open Mods > Options to configure.");
+
+        ctx.Logger.Info("BA BOT loaded - press F8 in-game for the panel.");
+        Activity.Add("BA BOT loaded - press F8");
     }
 
     public void Shutdown()
     {
         if (_subscribed)
         {
+            UnityLifecycleProvider.OnUpdate -= OnFrame;
             GlobalEvents.onNewDay -= OnNewDay;
-            GlobalEvents.onNewHour -= OnNewHour;
             _subscribed = false;
         }
-        try { OptionsService.RemoveModOptions(_ctx.ModId); } catch { }
+        try { _panel.Destroy(); } catch { }
         try { Settings.SaveIfChanged(Config); } catch { }
     }
-
-    private void Save() { try { Settings.SaveIfChanged(Config); } catch { } }
 
     private void EnsureEngine()
     {
@@ -85,23 +79,60 @@ public sealed class BaBotLogic
         _engine = new OrchestrationEngine(managers, gate, commands, new ModLog());
     }
 
-    private void OnNewDay() => RunAutomation("NewDay");
-
-    /// <summary>Auto-wellbeing: hourly top-up of energy (then happiness) when low.</summary>
-    private void OnNewHour()
+    /// <summary>Per-frame, via the official lifecycle hook (no MonoBehaviour). Fully guarded.</summary>
+    private void OnFrame()
     {
         try
         {
-            if (!(Config.MasterEnabled && Config.WellbeingEnabled)) return;
-            var gi = SaveGameManager.Current;
-            if (gi == null) return;
-            if (gi.Energy < 30f) GameActions.RefillEnergy();
-            else if (gi.Happiness < 30f) { GameActions.BoostHappiness(50); Activity.Add("Happiness boosted"); }
+            float dt = Time.deltaTime;
+            _refreshTimer += dt;
+            _sinceWellbeing += dt;
+            if (_refreshTimer >= 1f)
+            {
+                _refreshTimer = 0f;
+                _snapshot = GameProbe.Read();
+                MaybeWellbeing();
+                Settings.SaveIfChanged(Config);
+            }
+
+            // F8 toggle (new Input System), ignored while typing. Own silent guard against per-frame spam.
+            try
+            {
+                var kb = Keyboard.current;
+                if (kb != null && kb.f8Key.wasPressedThisFrame && !GameManager.HasInputSelected())
+                {
+                    _visible = !_visible;
+                    _panel.SetVisible(_visible);
+                }
+            }
+            catch { }
+
+            if (_visible)
+            {
+                if (!_wasVisible) { _savedLock = Cursor.lockState; _savedCursorVisible = Cursor.visible; _wasVisible = true; }
+                Cursor.visible = true; Cursor.lockState = CursorLockMode.None;
+                _panel.Refresh(Config, _snapshot);
+            }
+            else if (_wasVisible)
+            {
+                Cursor.lockState = _savedLock; Cursor.visible = _savedCursorVisible; _wasVisible = false;
+            }
         }
-        catch (Exception ex) { UnityEngine.Debug.LogWarning("[BA BOT] wellbeing failed: " + ex.Message); }
+        catch (Exception ex)
+        {
+            if (!_loggedFrameError) { _loggedFrameError = true; Debug.LogWarning("[BA BOT] frame failed (logged once): " + ex.Message); }
+        }
     }
 
-    /// <summary>One safety-gated automation pass. Master switch required (engine enforces it too).</summary>
+    private void MaybeWellbeing()
+    {
+        if (!(Config.MasterEnabled && Config.WellbeingEnabled && _snapshot.HasSave) || _sinceWellbeing <= 15f) return;
+        if (_snapshot.Energy < 30f) { GameActions.RefillEnergy(); _sinceWellbeing = 0f; }
+        else if (_snapshot.Happiness < 30f) { GameActions.BoostHappiness(50); Activity.Add("Happiness boosted"); _sinceWellbeing = 0f; }
+    }
+
+    private void OnNewDay() => RunAutomation("NewDay");
+
     private void RunAutomation(string trigger)
     {
         if (!Config.MasterEnabled)
@@ -110,6 +141,6 @@ public sealed class BaBotLogic
             return;
         }
         try { EnsureEngine(); _engine.Tick(_state, _clock, Config); }
-        catch (Exception ex) { UnityEngine.Debug.LogWarning($"[BA BOT] tick ({trigger}) failed: " + ex.Message); }
+        catch (Exception ex) { Debug.LogWarning($"[BA BOT] tick ({trigger}) failed: " + ex.Message); }
     }
 }

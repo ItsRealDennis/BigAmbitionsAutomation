@@ -26,6 +26,10 @@
          targeting pack, which already supplies the BCL. The panel is the game-rendered OptionsService
          UI, so no UI/Input references are needed. -->
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(Managed)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(Managed)\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UIModule"><HintPath>$(Managed)\UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(Managed)\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(Managed)\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions.ModAPI"><HintPath>$(Managed)\BigAmbitions.ModAPI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions"><HintPath>$(Managed)\BigAmbitions.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions.Items"><HintPath>$(Managed)\BigAmbitions.Items.dll</HintPath><Private>false</Private></Reference>
