@@ -21,6 +21,8 @@ internal sealed class PanelView
     private Text _tipText;
     private RectTransform _winRect;
     private Canvas _canvas;
+    private AutomationConfig _cfg;
+    private Action _runNow, _onClose;
     private const float MinScale = 0.5f, MaxScale = 1.7f;
 
     private sealed class ToggleRow { public Image Pill; public Text PillText; public Text Label; public Func<bool> Get; }
@@ -50,6 +52,7 @@ internal sealed class PanelView
 
     public void Build(AutomationConfig cfg, Action runNow, Action onClose)
     {
+        _cfg = cfg; _runNow = runNow; _onClose = onClose;
         _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         if (_font == null) { try { _font = Font.CreateDynamicFontFromOSFont("Arial", 16); } catch { } }
 
@@ -76,8 +79,9 @@ internal sealed class PanelView
         AddDrag(handle.gameObject);
 
         var chrome = Panel(win, "Chrome", 0, 0, W, 12, Chrome, 16); chrome.raycastTarget = false;
-        MkText(win, "Title", Pad, 20, W - 2 * Pad - 134, 34, 27, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
-        MkText(win, "Sub", Pad, 54, W - 2 * Pad - 134, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
+        MkText(win, "Title", Pad, 20, W - 2 * Pad - 184, 34, 27, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
+        MkText(win, "Sub", Pad, 54, W - 2 * Pad - 184, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
+        Btn(win, "Lang", W - Pad - 160, 22, 38, 30, RowBg, White, Loc.Current == Lang.Da ? "DA" : "EN", 14, ToggleLanguage, "Switch language: English / Dansk");
         Btn(win, "SizeDown", W - Pad - 118, 22, 34, 30, RowBg, White, "-", 20, () => ChangeScale(-0.1f), "Make the panel smaller");
         Btn(win, "SizeUp", W - Pad - 80, 22, 34, 30, RowBg, White, "+", 20, () => ChangeScale(0.1f), "Make the panel bigger");
         Btn(win, "Close", W - Pad - 34, 22, 34, 30, Red, White, "X", 16, () => { try { onClose(); } catch { } }, "Close the panel (or press F8). Drag the title bar to move it; use - / + to resize.");
@@ -254,6 +258,29 @@ internal sealed class PanelView
     {
         UiPrefs.Scale = Mathf.Clamp(UiPrefs.Scale + delta, MinScale, MaxScale);
         if (_winRect != null) _winRect.localScale = Vector3.one * UiPrefs.Scale;
+    }
+
+    // ---- language ----
+
+    private void ToggleLanguage()
+    {
+        Loc.Current = Loc.Current == Lang.En ? Lang.Da : Lang.En;
+        if (_cfg != null) _cfg.Language = Loc.Current == Lang.Da ? "da" : "en"; // persisted by the 1s autosave
+        Rebuild();
+    }
+
+    // Rebuild the whole panel so every label (static + dynamic) picks up the new language. Size/position
+    // live in persisted UiPrefs so they survive, and we restore the current visibility.
+    private void Rebuild()
+    {
+        if (_cfg == null) return;
+        bool wasVisible = _root != null && _root.activeSelf;
+        var cfg = _cfg; var run = _runNow; var close = _onClose;
+        Destroy();
+        _toggles.Clear();
+        _steppers.Clear();
+        Build(cfg, run, close);
+        SetVisible(wasVisible);
     }
 
     // ---- primitives ----

@@ -42,6 +42,7 @@ public sealed class BaBotLogic
     public void Initialize(ModContext ctx)
     {
         try { Settings.Load(Config); } catch (Exception ex) { Debug.LogWarning("[BA BOT] settings load: " + ex.Message); }
+        Loc.Current = string.Equals(Config.Language, "da", StringComparison.OrdinalIgnoreCase) ? Lang.Da : Lang.En;
         EnsureEngine();
 
         try
