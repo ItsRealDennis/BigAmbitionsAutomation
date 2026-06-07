@@ -17,8 +17,8 @@ public sealed class ContractManager : IAutomationManager
         if (!ctx.Config.LogisticsEnabled)
             return ActionPlan.Empty;
 
-        var cash = ctx.State.GetFinances().Cash;
         var floor = ctx.Config.CashReserveFloor;
+        var projected = ctx.State.GetFinances().Cash;
 
         var actions = new List<PlannedAction>();
         foreach (var c in ctx.State.GetContracts())
@@ -26,11 +26,13 @@ public sealed class ContractManager : IAutomationManager
             if (!c.Enabled || c.Repeating)
                 continue;
 
-            // Affordability: don't commit to a recurring weekly bill we couldn't cover and stay above the
-            // reserve floor. (CashDelta is 0 - flipping the flag spends nothing now; the cost lands on
-            // delivery day - so this check, not the budget gate, is what protects the player here.)
-            if (c.CostPerDelivery > 0m && cash - c.CostPerDelivery < floor)
+            // Affordability: don't commit to a recurring weekly bill that would drop cash below the reserve
+            // floor. CashDelta is 0 (flipping the flag spends nothing now; the cost lands on delivery day),
+            // so the engine's budget gate can't catch it - we track a running projection across all
+            // contracts this tick so several cheap-looking commitments can't overspend together.
+            if (c.CostPerDelivery > 0m && projected - c.CostPerDelivery < floor)
                 continue;
+            projected -= c.CostPerDelivery;
 
             var id = c.Id;
             actions.Add(new PlannedAction(

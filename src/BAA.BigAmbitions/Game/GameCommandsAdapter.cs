@@ -147,6 +147,9 @@ internal sealed class GameCommandsAdapter : IGameCommands
         if (!Live) return Preview(repeating ? "make import contract recurring" : "stop import contract recurring");
         try
         {
+            // Match the game's own UI guard: contracts can't be modified during the Sun 20:00 - Mon 08:00 lock.
+            if (!Entities.DeliveryHelper.CanModifyContract(c.nextDeliveryDay))
+                return CommandResult.Skipped("contract in lock period");
             c.repeatingOrder = repeating;
             try { SaveGameManager.MarkChange(); } catch { }
             Activity.Add(repeating ? "Import contract set to recurring" : "Import contract recurring off");

@@ -63,6 +63,21 @@ public class ContractManagerTests
     }
 
     [Fact]
+    public void Plan_stops_once_cumulative_recurring_cost_would_breach_floor()
+    {
+        // cash 900, floor 0; two contracts at 600 each. The first fits (900-600=300); the second must NOT
+        // (300-600=-300 < 0). Only one action - proves per-tick running affordability, not just per-contract.
+        var world = WorldBuilder.New().Cash(900m).Business("b1")
+            .Contract("c1", "b1", true, false, 600m)
+            .Contract("c2", "b1", true, false, 600m)
+            .Build();
+
+        var plan = new ContractManager().Plan(Ctx(world, new AutomationConfig { LogisticsEnabled = true }));
+
+        Assert.Single(plan.Actions);
+    }
+
+    [Fact]
     public void Plan_is_empty_when_feature_off()
     {
         var world = WorldBuilder.New().Cash(10000m).Business("b1")
