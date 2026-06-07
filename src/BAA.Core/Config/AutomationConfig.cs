@@ -41,6 +41,17 @@ public sealed class AutomationConfig
     /// <summary>Automation will not spend cash below this floor.</summary>
     public decimal CashReserveFloor { get; set; }
 
+    /// <summary>
+    /// Opt-in difficulty balance: when on, each automation run that actually does work charges a
+    /// <see cref="ServiceFeePerRun"/> cash fee, so leaning on the bot is no longer free. <b>Off by
+    /// default</b> — the mod stays free until the player chooses the extra challenge.
+    /// </summary>
+    public bool ServiceFeeEnabled { get; set; }
+
+    /// <summary>Cash charged per automation run when <see cref="ServiceFeeEnabled"/> is on. Routed
+    /// through the safety gate, so it never spends below <see cref="CashReserveFloor"/>.</summary>
+    public decimal ServiceFeePerRun { get; set; } = 250m;
+
     /// <summary>Behavior applied to any business without an explicit override.</summary>
     public PerBusinessConfig DefaultBusiness { get; set; } = new();
 

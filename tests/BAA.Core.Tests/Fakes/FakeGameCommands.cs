@@ -121,6 +121,13 @@ public sealed class FakeGameCommands : IGameCommands
         return CommandResult.Applied(-amount);
     }
 
+    public CommandResult ChargeServiceFee(decimal amount)
+    {
+        Calls.Add($"ChargeServiceFee({(int)amount})");
+        _world.Cash -= amount;
+        return CommandResult.Applied(-amount);
+    }
+
     // --- Time ---
 
     public CommandResult SetTimeSpeed(float multiplier)

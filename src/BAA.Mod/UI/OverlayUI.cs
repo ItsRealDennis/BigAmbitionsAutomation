@@ -11,8 +11,9 @@ namespace BAA.Mod.UI;
 /// </summary>
 internal sealed class OverlayUI
 {
-    private const float W = 380f, H = 770f, X = 24f, Y = 24f, Pad = 16f;
+    private const float W = 380f, H = 834f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
+    private const decimal FeeStep = 50m;
 
     /// <summary>Screen rect of the panel in GUI space (origin top-left) — used to block click-through.</summary>
     internal static Rect PanelRect => new Rect(X, Y, W, H);
@@ -96,6 +97,7 @@ internal sealed class OverlayUI
         cfg.TimeSkipEnabled = SwitchRow(ix, ref cy, iw, "TIME-SKIP (AFK)", cfg.TimeSkipEnabled, true, "Fast-forwards in-game time while your businesses keep earning. Turn off for normal speed.");
         cfg.WellbeingEnabled = SwitchRow(ix, ref cy, iw, "AUTO-WELLBEING", cfg.WellbeingEnabled, true, "Automatically refills your energy (and tops up happiness) so you never stop to sleep or eat.");
         cfg.LiveWrites = SwitchRow(ix, ref cy, iw, "LIVE MODE", cfg.LiveWrites, false, "OFF (default) = automation only PREVIEWS what it would do (safe). ON = it actually pays taxes and gives bonuses. Turn on only while watching the game.");
+        cfg.ServiceFeeEnabled = SwitchRow(ix, ref cy, iw, "SERVICE FEE", cfg.ServiceFeeEnabled, false, "Optional challenge: charges in-game cash each time automation does work for you, so leaning on the bot has a cost. OFF = free (default). Respects your reserve floor.");
         cy += 8;
 
         // --- Reserve floor ---
@@ -116,6 +118,15 @@ internal sealed class OverlayUI
             cfg.RestockTarget += 5;
         cy += 36;
 
+        // --- Service fee per run ---
+        GUI.Label(new Rect(ix, cy + 5, iw - 76, 20), $"{Loc.T("FEE / RUN")}  ${cfg.ServiceFeePerRun:N0}", _label);
+        TipIf(new Rect(ix, cy, iw - 76, 26), "Cash charged per automation run when SERVICE FEE is on. Use the minus / plus buttons to adjust.");
+        if (Button(new Rect(ix + iw - 68, cy, 30, 26), "−", _btnDark))
+            cfg.ServiceFeePerRun = System.Math.Max(0m, cfg.ServiceFeePerRun - FeeStep);
+        if (Button(new Rect(ix + iw - 32, cy, 30, 26), "+", _btnDark))
+            cfg.ServiceFeePerRun += FeeStep;
+        cy += 36;
+
         // --- Activity log ---
         GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("ACTIVITY"), _section);
         cy += 18;
@@ -130,7 +141,7 @@ internal sealed class OverlayUI
         }
 
         // Footer
-        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.4.0     •     {Loc.T("F8 to toggle")}", _footer);
+        GUI.Label(new Rect(ix, Y + H - Pad - 14, iw, 14), $"BA BOT  v0.5.0     •     {Loc.T("F8 to toggle")}", _footer);
 
         DrawTooltip();
     }
