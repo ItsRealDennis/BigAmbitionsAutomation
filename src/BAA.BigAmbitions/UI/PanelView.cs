@@ -67,6 +67,10 @@ internal sealed class PanelView
         scaler.referenceResolution = new Vector2(1480, 980); // taller ref (panel now includes the activity log) so it fits on screen; use + to enlarge
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 1f;
+        // Legacy uGUI Text rasterises into a dynamic font atlas; a high pixels-per-unit makes that atlas
+        // render at much higher resolution so the text stays sharp when the canvas + window scale it up.
+        scaler.dynamicPixelsPerUnit = 4f;
+        scaler.referencePixelsPerUnit = 100f;
         _canvas = canvas;
         _root.AddComponent<GraphicRaycaster>();
 
@@ -247,11 +251,15 @@ internal sealed class PanelView
         var rt = (RectTransform)_tip.transform;
         rt.sizeDelta = new Vector2(w, h);
         rt.pivot = new Vector2(0f, 1f);
+        // Scale the tooltip to match the panel's current size (it lives outside the scaled window).
+        float scale = Mathf.Clamp(UiPrefs.Scale, MinScale, MaxScale);
+        rt.localScale = Vector3.one * scale;
+        float sw = w * scale, sh = h * scale;
         var ped = data as PointerEventData;
         Vector2 p = ped != null ? ped.position : new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
         float x = p.x + 16f, top = p.y - 14f;
-        if (x + w > Screen.width) x = p.x - 16f - w;
-        if (top - h < 0f) top = h + 8f;
+        if (x + sw > Screen.width) x = p.x - 16f - sw;
+        if (top - sh < 0f) top = sh + 8f;
         if (x < 4f) x = 4f;
         rt.position = new Vector3(x, top, 0f);
         _tip.SetActive(true);
