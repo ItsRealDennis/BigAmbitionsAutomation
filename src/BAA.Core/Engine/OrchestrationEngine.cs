@@ -25,17 +25,20 @@ public sealed class OrchestrationEngine
         _logger = logger;
     }
 
-    public void Tick(IGameState state, IGameClock clock, AutomationConfig config)
+    /// <summary>Runs one automation pass and returns the number of actions actually applied (or previewed),
+    /// so the UI can give feedback like "3 actions" / "nothing to do".</summary>
+    public int Tick(IGameState state, IGameClock clock, AutomationConfig config, bool chargeServiceFee = true)
     {
         // Master switch is the single source of truth: off = the engine does nothing, no matter how it
         // was triggered (daily tick or the panel's "run now" button). Each manager additionally gates
         // on its own feature flag, so master ON still does nothing until a feature is enabled too.
         if (!config.MasterEnabled || !state.IsWorldReady())
-            return;
+            return 0;
 
         // Track whether the tick actually did anything, so the optional service fee only bites when
         // the bot did work for the player (an empty run shouldn't be punitive).
         bool didWork = false;
+        int applied = 0;
 
         foreach (var manager in _managers)
         {
@@ -62,11 +65,16 @@ public sealed class OrchestrationEngine
                 if (result.Outcome == CommandOutcome.Failed)
                     _logger.Error($"Action failed [{action.Description}]: {result.Reason}");
                 else if (result.Outcome == CommandOutcome.Applied)
+                {
                     didWork = true;
+                    applied++;
+                }
             }
         }
 
-        ChargeServiceFee(state, config, didWork);
+        if (chargeServiceFee)
+            ChargeServiceFee(state, config, didWork);
+        return applied;
     }
 
     /// <summary>

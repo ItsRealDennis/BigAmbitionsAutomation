@@ -54,6 +54,7 @@ public sealed class BaBotLogic
 
         UnityLifecycleProvider.OnUpdate += OnFrame;
         GlobalEvents.onNewDay += OnNewDay;
+        GlobalEvents.onNewHour += OnNewHour; // run continuously through the day, not just at midnight
         _subscribed = true;
 
         ctx.Logger.Info("BA BOT loaded - press F8 in-game for the panel.");
@@ -66,6 +67,7 @@ public sealed class BaBotLogic
         {
             UnityLifecycleProvider.OnUpdate -= OnFrame;
             GlobalEvents.onNewDay -= OnNewDay;
+            GlobalEvents.onNewHour -= OnNewHour;
             _subscribed = false;
         }
         try { _panel.Destroy(); } catch { }
@@ -138,6 +140,7 @@ public sealed class BaBotLogic
     }
 
     private void OnNewDay() => RunAutomation("NewDay");
+    private void OnNewHour() => RunAutomation("hour");
 
     private void RunAutomation(string trigger)
     {
@@ -146,7 +149,18 @@ public sealed class BaBotLogic
             if (trigger == "manual") Activity.Add("Enable AUTOMATION (MASTER) first");
             return;
         }
-        try { EnsureEngine(); _engine.Tick(_state, _clock, Config); }
+        try
+        {
+            EnsureEngine();
+            int n = _engine.Tick(_state, _clock, Config, chargeServiceFee: trigger != "hour");
+            // Always give feedback on a manual RUN NOW (so an idle run isn't silent); for the daily auto-run
+            // only log when something actually happened, to avoid flooding the log during TURBO/skips.
+            if (trigger == "manual" || n > 0)
+            {
+                string mode = Config.LiveWrites ? "" : " (preview)";
+                Activity.Add(n > 0 ? $"Automation{mode}: {n} action(s)" : $"Automation{mode}: nothing to do right now");
+            }
+        }
         catch (Exception ex) { Debug.LogWarning($"[BA BOT] tick ({trigger}) failed: " + ex.Message); }
     }
 }
