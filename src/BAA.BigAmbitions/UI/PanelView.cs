@@ -17,6 +17,7 @@ internal sealed class PanelView
     private GameObject _root;
     private Font _font;
     private Text _status;
+    private Text _log;
     private GameObject _tip;
     private Text _tipText;
     private RectTransform _winRect;
@@ -44,7 +45,7 @@ internal sealed class PanelView
     private static readonly Color Dim     = new(0.66f, 0.73f, 0.82f, 1f);
     private static readonly Color TipBg   = new(0.04f, 0.06f, 0.09f, 0.98f);
 
-    private const float W = 540f, H = 776f, Pad = 22f;
+    private const float W = 540f, H = 924f, Pad = 22f;
 
     public bool Built => _root != null;
     public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) { _root.SetActive(v); if (!v && _tip != null) _tip.SetActive(false); } }
@@ -63,7 +64,7 @@ internal sealed class PanelView
         canvas.sortingOrder = 30000;
         var scaler = _root.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1480, 760); // low ref height => large UI (~1.9x at 1440p)
+        scaler.referenceResolution = new Vector2(1480, 980); // taller ref (panel now includes the activity log) so it fits on screen; use + to enlarge
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 1f;
         _canvas = canvas;
@@ -140,6 +141,14 @@ internal sealed class PanelView
         Btn(win, "Energy", Pad + tw + 12, y, tw, 40, Blue, White, Loc.T("ENERGY"), 15, GameActions.RefillEnergy, "Instantly refill your energy to full.");
         Btn(win, "Skip", Pad + 2 * (tw + 12), y, tw, 40, RowBg, White, Loc.T("SKIP DAY"), 15, GameActions.SkipToMorning, "Fast-forward to the next morning (08:00). Crossing midnight runs the daily automation, so the bot works while you skip.");
 
+        // Activity log (newest first) - shows what the bot is doing/previewing
+        y += 50;
+        MkText(win, "LogHdr", Pad + 2, y, W - 2 * Pad, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("ACTIVITY");
+        y += 22;
+        Panel(win, "LogBg", Pad, y, W - 2 * Pad, 110, Inset, 10);
+        _log = MkText(win, "Log", Pad + 14, y + 9, W - 2 * Pad - 28, 92, 13, Dim, TextAnchor.UpperLeft, FontStyle.Normal);
+        _log.lineSpacing = 1.1f;
+
         // Tooltip box (hidden until hover)
         var tipImg = Panel(_root.transform, "Tip", 0, 0, 360, 96, TipBg, 8);
         tipImg.raycastTarget = false;
@@ -173,6 +182,15 @@ internal sealed class PanelView
                 t.Label.color = on ? White : Dim;
             }
             foreach (var st in _steppers) st.Label.text = st.Format();
+
+            if (_log != null)
+            {
+                var lines = Diagnostics.Activity.Recent();
+                int n = Math.Min(lines.Count, 8);
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < n; i++) sb.Append(lines[i]).Append('\n');
+                _log.text = n > 0 ? sb.ToString() : Loc.T("No activity yet");
+            }
         }
         catch { }
     }
