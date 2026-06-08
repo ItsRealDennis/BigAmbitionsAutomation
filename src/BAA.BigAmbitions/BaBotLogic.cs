@@ -29,6 +29,8 @@ public sealed class BaBotLogic
     private bool _visible;
     private float _refreshTimer;
     private float _sinceWellbeing = 99f;
+    private int _lastAutoDay = -1;
+    private int _lastAutoHour = -1;
     private bool _loggedFrameError;
     private bool _wasVisible;
     private CursorLockMode _savedLock;
@@ -53,8 +55,6 @@ public sealed class BaBotLogic
         catch (Exception ex) { Debug.LogError("[BA BOT] panel build failed: " + ex); }
 
         UnityLifecycleProvider.OnUpdate += OnFrame;
-        GlobalEvents.onNewDay += OnNewDay;
-        GlobalEvents.onNewHour += OnNewHour; // run continuously through the day, not just at midnight
         _subscribed = true;
 
         ctx.Logger.Info("BA BOT loaded - press F8 in-game for the panel.");
@@ -66,8 +66,6 @@ public sealed class BaBotLogic
         if (_subscribed)
         {
             UnityLifecycleProvider.OnUpdate -= OnFrame;
-            GlobalEvents.onNewDay -= OnNewDay;
-            GlobalEvents.onNewHour -= OnNewHour;
             _subscribed = false;
         }
         try { _panel.Destroy(); } catch { }
@@ -99,6 +97,7 @@ public sealed class BaBotLogic
             {
                 _refreshTimer = 0f;
                 _snapshot = GameProbe.Read();
+                MaybeAutoRun();
                 MaybeWellbeing();
                 Settings.SaveIfChanged(Config);
             }
@@ -139,8 +138,16 @@ public sealed class BaBotLogic
         else if (_snapshot.Happiness < 30f) { GameActions.BoostHappiness(50); Activity.Add("Happiness boosted"); _sinceWellbeing = 0f; }
     }
 
-    private void OnNewDay() => RunAutomation("NewDay");
-    private void OnNewHour() => RunAutomation("hour");
+    /// <summary>Self-driven automation: detect in-game hour/day changes from the polled snapshot and run the
+    /// engine. Does NOT depend on any game event subscription surviving a city load, so the bot runs
+    /// autonomously every in-game hour/day whenever a save is loaded (no RUN NOW needed).</summary>
+    private void MaybeAutoRun()
+    {
+        if (!_snapshot.HasSave) { _lastAutoDay = -1; _lastAutoHour = -1; return; }
+        if (_lastAutoDay < 0) { _lastAutoDay = _snapshot.Day; _lastAutoHour = _snapshot.Hour; return; } // arm on first sight
+        if (_snapshot.Day != _lastAutoDay) { _lastAutoDay = _snapshot.Day; _lastAutoHour = _snapshot.Hour; RunAutomation("NewDay"); }
+        else if (_snapshot.Hour != _lastAutoHour) { _lastAutoHour = _snapshot.Hour; RunAutomation("hour"); }
+    }
 
     private void RunAutomation(string trigger)
     {

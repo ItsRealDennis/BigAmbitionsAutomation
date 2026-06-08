@@ -25,7 +25,8 @@ internal static class GameActions
         try
         {
             GameManager.Command_SetEnergy(100f);
-            Activity.Add("Energy refilled to 100%");
+            try { GameManager.Command_ChangeHunger(100); } catch { } // also eat - resting/working burns food too
+            Activity.Add("Energy + food refilled to 100%");
         }
         catch (Exception ex) { UnityEngine.Debug.LogWarning("[BA BOT] RefillEnergy failed: " + ex.Message); }
     }

@@ -143,8 +143,8 @@ internal sealed class PanelView
             "Runs one automation pass now. Turn on MASTER + the features you want first. Previews unless Live mode is on.");
         y += 56;
         float tw = (W - 2 * Pad - 36) / 4f;
-        Btn(win, "Cash", Pad + 0 * (tw + 12), y, tw, 40, Green, White, "+$1,000", 14, () => GameActions.AddMoney(1000f), "Instantly add $1,000 cash (handy for testing).");
-        Btn(win, "Energy", Pad + 1 * (tw + 12), y, tw, 40, Blue, White, Loc.T("ENERGY"), 14, GameActions.RefillEnergy, "Instantly refill your energy to full.");
+        Btn(win, "Cash", Pad + 0 * (tw + 12), y, tw, 40, Green, White, "+$100K", 14, () => GameActions.AddMoney(100000f), "Instantly add $100,000 cash. Tip: click it a few times for more.");
+        Btn(win, "Energy", Pad + 1 * (tw + 12), y, tw, 40, Blue, White, Loc.T("ENERGY"), 14, GameActions.RefillEnergy, "Instantly refill your energy AND food to full.");
         Btn(win, "Skip", Pad + 2 * (tw + 12), y, tw, 40, RowBg, White, Loc.T("SKIP DAY"), 14, GameActions.SkipToMorning, "Fast-forward to the next morning (08:00). Crossing midnight runs the daily automation, so the bot works while you skip.");
         Btn(win, "Taxi", Pad + 3 * (tw + 12), y, tw, 40, Cyan, Slate, Loc.T("TAXI"), 14, GameActions.CallTaxi, "Open the taxi map to fast-travel somewhere (e.g. to your business).");
 
