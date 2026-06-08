@@ -67,6 +67,20 @@ internal static class GameActions
         _turbo = false;
     }
 
+    /// <summary>Open the in-game taxi map so you can fast-travel to a destination (same as clicking a taxi).</summary>
+    public static void CallTaxi()
+    {
+        try
+        {
+            if (SaveGameManager.Current == null) { Activity.Add("Taxi: no save loaded"); return; }
+            var cm = CityManager.Instance;
+            if (cm == null || cm.cityMap == null) { Activity.Add("Taxi: not available right now"); return; }
+            cm.cityMap.ToggleTaxiMode(true);
+            Activity.Add("Taxi: opened the map - pick where to go");
+        }
+        catch (Exception ex) { UnityEngine.Debug.LogWarning("[BA BOT] CallTaxi failed: " + ex.Message); }
+    }
+
     /// <summary>Fast-forward to the next morning (08:00) via the game's TimeMachine. Crossing midnight fires
     /// the daily automation cycle, so the bot works while you skip.</summary>
     public static void SkipToMorning()

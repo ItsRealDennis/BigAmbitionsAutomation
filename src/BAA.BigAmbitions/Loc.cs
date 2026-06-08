@@ -27,7 +27,7 @@ internal static class Loc
         ["AUTOMATION (MASTER)"] = "AUTOMATION (HOVED)", ["AUTO-RESTOCK"] = "AUTO-GENOPFYLD",
         ["LOGISTICS"] = "LOGISTIK", ["EMPLOYEES"] = "MEDARBEJDERE", ["FINANCE AUTO-PAY"] = "FINANS AUTO-BETAL",
         ["AUTO-WELLBEING"] = "AUTO-VELVÆRE", ["SERVICE FEE"] = "SERVICEGEBYR",
-        ["ENERGY"] = "ENERGI", ["SKIP DAY"] = "SPRING DAG OVER", ["TURBO SPEED"] = "TURBOFART",
+        ["ENERGY"] = "ENERGI", ["SKIP DAY"] = "SPRING DAG OVER", ["TURBO SPEED"] = "TURBOFART", ["TAXI"] = "TAXA",
         ["No activity yet"] = "Ingen aktivitet endnu",
         ["RUNNING"] = "KØRER", ["PREVIEW"] = "FORHÅNDSVISNING", ["LIVE"] = "LIVE",
         ["PAUSED - TURN ON MASTER"] = "PÅ PAUSE - SLÅ MASTER TIL", ["WAITING FOR SAVE"] = "VENTER PÅ SPIL",
