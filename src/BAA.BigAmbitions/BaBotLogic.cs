@@ -153,6 +153,7 @@ public sealed class BaBotLogic
         {
             EnsureEngine();
             int n = _engine.Tick(_state, _clock, Config, chargeServiceFee: trigger != "hour");
+            BotStatus.LastRunDay = _snapshot.Day; BotStatus.LastRunHour = _snapshot.Hour; BotStatus.LastRunActions = n;
             // Always give feedback on a manual RUN NOW (so an idle run isn't silent); for the daily auto-run
             // only log when something actually happened, to avoid flooding the log during TURBO/skips.
             if (trigger == "manual" || n > 0)

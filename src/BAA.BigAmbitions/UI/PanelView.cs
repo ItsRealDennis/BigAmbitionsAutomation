@@ -17,6 +17,7 @@ internal sealed class PanelView
     private GameObject _root;
     private Font _font;
     private Text _status;
+    private Text _sub;
     private Text _log;
     private GameObject _tip;
     private Text _tipText;
@@ -85,7 +86,8 @@ internal sealed class PanelView
 
         var chrome = Panel(win, "Chrome", 0, 0, W, 12, Chrome, 16); chrome.raycastTarget = false;
         MkText(win, "Title", Pad, 20, W - 2 * Pad - 184, 34, 27, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = "BA BOT";
-        MkText(win, "Sub", Pad, 54, W - 2 * Pad - 184, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("AUTOMATION CONTROL");
+        _sub = MkText(win, "Sub", Pad, 54, W - 2 * Pad - 184, 18, 13, Cyan, TextAnchor.MiddleLeft, FontStyle.Bold);
+        _sub.text = Loc.T("AUTOMATION CONTROL");
         Btn(win, "Lang", W - Pad - 160, 22, 38, 30, RowBg, White, Loc.Current == Lang.Da ? "DA" : "EN", 14, ToggleLanguage, "Switch language: English / Dansk");
         Btn(win, "SizeDown", W - Pad - 118, 22, 34, 30, RowBg, White, "-", 20, () => ChangeScale(-0.1f), "Make the panel smaller");
         Btn(win, "SizeUp", W - Pad - 80, 22, 34, 30, RowBg, White, "+", 20, () => ChangeScale(0.1f), "Make the panel bigger");
@@ -176,6 +178,19 @@ internal sealed class PanelView
                   $"{Loc.T("Shops")} {s.PlayerBusinesses}    {Loc.T("Energy")} {s.Energy:0}    {Loc.T("Happy")} {s.Happiness:0}\n" +
                   $"{Loc.T("Tax due")} ${s.TaxDue:N0}    {Loc.T("Loans")} {s.Loans}    {Loc.T("Staff")} {s.Employees}"
                 : Loc.T("NO SAVE LOADED");
+
+            if (_sub != null)
+            {
+                if (!s.HasSave) { _sub.text = Loc.T("WAITING FOR SAVE"); _sub.color = Dim; }
+                else if (!cfg.MasterEnabled) { _sub.text = Loc.T("PAUSED - TURN ON MASTER"); _sub.color = Dim; }
+                else
+                {
+                    string mode = cfg.LiveWrites ? Loc.T("LIVE") : Loc.T("PREVIEW");
+                    string beat = BotStatus.LastRunDay >= 0 ? $"   {BotStatus.LastRunHour:00}:00" : "";
+                    _sub.text = $"{Loc.T("RUNNING")} - {mode}{beat}";
+                    _sub.color = Green;
+                }
+            }
 
             foreach (var t in _toggles)
             {

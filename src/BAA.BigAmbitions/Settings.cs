@@ -113,3 +113,11 @@ internal static class UiPrefs
     public static float PosX = 26f;
     public static float PosY = -26f;
 }
+
+/// <summary>Live run status for the panel's "RUNNING" indicator + heartbeat (not persisted).</summary>
+internal static class BotStatus
+{
+    public static int LastRunDay = -1;   // -1 = hasn't ticked yet this session
+    public static int LastRunHour;
+    public static int LastRunActions;
+}
