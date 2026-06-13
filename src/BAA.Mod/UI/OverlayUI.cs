@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BAA.Core.Config;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace BAA.Mod.UI;
 /// </summary>
 internal sealed class OverlayUI
 {
-    private const float W = 380f, H = 834f, X = 24f, Y = 24f, Pad = 16f;
+    private const float W = 380f, H = 980f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
     private const decimal FeeStep = 50m;
 
@@ -32,6 +33,10 @@ internal sealed class OverlayUI
     private GUIStyle _btnBlue, _btnGreen, _btnDark, _swOn, _swOff, _tipBg, _tipStyle;
     private string _tip;
     private Vector2 _tipAt;
+
+    // SKILLS panel cache: staff are re-read at most once a second while the panel is open.
+    private List<PersonSkill> _skills = new();
+    private float _skillsAt = -99f;
 
     public void Draw(AutomationConfig cfg, GameSnapshot s)
     {
@@ -126,6 +131,41 @@ internal sealed class OverlayUI
         if (Button(new Rect(ix + iw - 32, cy, 30, 26), "+", _btnDark))
             cfg.ServiceFeePerRun += FeeStep;
         cy += 36;
+
+        // --- Skills (pick a person, train them to 100%) ---
+        GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("SKILLS"), _section);
+        cy += 18;
+        if (Time.realtimeSinceStartup - _skillsAt > 1f)
+        {
+            _skills = SkillProbe.Read();
+            _skillsAt = Time.realtimeSinceStartup;
+        }
+        int shown = Mathf.Min(_skills.Count, 5);
+        float skillsH = _skills.Count == 0 ? 34f : shown * 28f + 10f;
+        GUI.Box(new Rect(ix, cy, iw, skillsH), "", _inset);
+        if (_skills.Count == 0)
+        {
+            GUI.Label(new Rect(ix + 12, cy + 9, iw - 24, 16), Loc.T("Hire staff to train their skills."), _logline);
+        }
+        else
+        {
+            float ry = cy + 6;
+            for (int i = 0; i < shown; i++)
+            {
+                var p = _skills[i];
+                bool full = p.Percent >= 99.5f;
+                var row = new Rect(ix + 6, ry, iw - 12, 26);
+                GUI.Label(new Rect(ix + 12, ry + 5, iw - 132, 16), p.Name, _label);
+                GUI.Label(new Rect(ix + iw - 144, ry + 5, 54, 16), $"{p.Percent:0}%", _sub);
+                var pill = new Rect(ix + iw - 80, ry + 3, 66, 20);
+                GUI.Box(pill, full ? Loc.T("100%") : Loc.T("MAX"), full ? _swOn : _btnGreen);
+                TipIf(row, "Click MAX to instantly train this person's skill to 100%.");
+                if (!full && Clicked(pill) && SkillProbe.MaxOut(p.Index))
+                    _skillsAt = -99f; // force a re-read next frame so the percent jumps to 100
+                ry += 28;
+            }
+        }
+        cy += skillsH + 14;
 
         // --- Activity log ---
         GUI.Label(new Rect(ix, cy, iw, 13), Loc.T("ACTIVITY"), _section);

@@ -106,6 +106,25 @@ probe walk a BuildingRegistration at runtime and log its inventory shape (more r
 - [ ] **IGameCommands.HireCandidate / SetWage / SetSchedule / SetHealthPlan** — TO-DISCOVER
 - [ ] **IGameEvents.EmployeeResigned** — TO-DISCOVER
 
+### Employee skill (SKILLS panel — "train a person to 100%")
+- Status:           TENTATIVE (reflection-based; ships behind the manual SKILLS panel, no automation)
+- Game type:        `Il2Cpp.EmployeeInstance` (elements of `GameInstance.EmployeeInstances`)
+- Member:           the per-employee skill/competence level field — **field name not yet confirmed**.
+                    `SkillProbe` (in `BAA.Mod`) locates it by reflection over the candidate names in
+                    `SkillProbe.SkillNames` (`skill`, `skillLevel`, `competence`, `expertise`, …) and,
+                    if none match, logs every numeric member of the first employee to Player.log under
+                    `BA BOT employee shape (skill discovery)` so the real one can be identified.
+- Read path:        `SaveGameManager.Current.EmployeeInstances[i]` → skill property (normalised: a
+                    0..1 value is shown as a percent; a 0..100 value is used as-is). Candidates are
+                    skipped via `IsCandidate`. Display name via `GetEmployeeNameWithInfo()` (guarded).
+- Write path:       set the skill property to its max (1.0 for a 0..1 scale, else 100). The game is
+                    expected to clamp; verify no side-effects (e.g. payroll/role gates) before LIVE.
+- To CONFIRM:       read the discovery dump in Player.log, move the real field name to the front of
+                    `SkillProbe.SkillNames`, then live-verify the in-game skill bar fills to full.
+- Notes / risks:    EA build moved Mono→IL2CPP; the old `Entities.EmployeeInstance.skill` access in the
+                    legacy `BAA.BigAmbitions` adapter returned `0f` (never wired), so the field is
+                    genuinely unconfirmed on the current DLL — hence the reflection + discovery log.
+
 ## Checklist — Lifecycle
 - [ ] **IGameState.IsWorldReady** (a save is loaded & playable) — TO-DISCOVER
 - [ ] **IGameEvents.SaveLoaded / SaveUnloading** (reset engine + load per-save config) — TO-DISCOVER

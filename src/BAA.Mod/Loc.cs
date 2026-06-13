@@ -24,6 +24,11 @@ internal static class Loc
         ["ENERGY 100%"] = "ENERGI 100%",
         ["SCAN MY BUSINESSES"] = "SCAN MINE VIRKSOMHEDER",
         ["FEATURES"] = "FUNKTIONER",
+        ["SKILLS"] = "FÆRDIGHEDER",
+        ["MAX"] = "MAKS",
+        ["Hire staff to train their skills."] = "Ansæt personale for at træne deres færdigheder.",
+        ["Click MAX to instantly train this person's skill to 100%."]
+            = "Klik MAKS for straks at træne denne persons færdighed til 100%.",
         ["ACTIVITY"] = "AKTIVITET",
         ["ON"] = "TIL",
         ["OFF"] = "FRA",
