@@ -38,6 +38,7 @@ An in-game automation suite for **[Big Ambitions](https://store.steampowered.com
 | 🔍 | **Preview-first & safe** | Every money move previews what it would do; flip **Live mode** on only when watching. Reserve floor + safety breakers never crossed. |
 | 💰 | **Finance auto-pay** | Pays your taxes the moment they come due — the one money chore the game won't do for you. Reserve-floor gated. |
 | 👔 | **Employees** | Morale bonus to unhappy staff when the game allows one, and completed training finished automatically. |
+| 🎓 | **Train a person** *(preview)* | A **SKILLS** panel lists your staff — click **MAX** on anyone to bring their skill straight to 100%. Pick who you want; it does the rest. |
 | 🚚 | **Logistics** | Sets up a repeating weekly import for any product running low, so stock keeps flowing. |
 | 📦 | **Auto-restock** *(preview)* | Reads each shop's stock and restocks to target on the daily tick, gated by your reserve floor. |
 | ⚖️ | **Service fee** *(opt-in)* | Optional challenge: charges in-game cash when automation does work for you, so leaning on the bot isn't free. Off by default; tune the fee in the panel. |
