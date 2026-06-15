@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BAA.Core\BAA.Core.csproj" />
+    <!-- Vendored Harmony (2.3.3, same build the game's other Workshop mods use). Shipped in the mod's
+         Dependencies\ folder, NOT provided by the game. Private=false: deploy copies it explicitly. -->
+    <Reference Include="0Harmony"><HintPath>$(MSBuildThisFileDirectory)..\..\lib\0Harmony.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +36,8 @@
     <Reference Include="BigAmbitions.ModAPI"><HintPath>$(Managed)\BigAmbitions.ModAPI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions"><HintPath>$(Managed)\BigAmbitions.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BigAmbitions.Items"><HintPath>$(Managed)\BigAmbitions.Items.dll</HintPath><Private>false</Private></Reference>
+    <!-- Skill / CharacterData live here (employee SKILLS panel) -->
+    <Reference Include="BigAmbitions.Characters"><HintPath>$(Managed)\BigAmbitions.Characters.dll</HintPath><Private>false</Private></Reference>
     <!-- GameManager : InstanceBehavior<GameManager> — base type lives here -->
     <Reference Include="HGExtensions"><HintPath>$(Managed)\HGExtensions.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>

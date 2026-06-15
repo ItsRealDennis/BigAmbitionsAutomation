@@ -26,7 +26,7 @@ public sealed class BaBotLogic
 {
     /// <summary>Build tag, logged on load so a session's Player.log unambiguously identifies which mod
     /// build was running (the DLL only reloads on a full game restart).</summary>
-    internal const string Version = "v0.6.1 (2026-06-08)";
+    internal const string Version = "v0.9.0 (2026-06-15) low-stock alert (Harmony) + SKILLS + tabs";
 
     internal static readonly AutomationConfig Config = new();
 
@@ -55,6 +55,10 @@ public sealed class BaBotLogic
         try { Settings.Load(Config); } catch (Exception ex) { Debug.LogWarning("[BA BOT] settings load: " + ex.Message); }
         Loc.Current = string.Equals(Config.Language, "da", StringComparison.OrdinalIgnoreCase) ? Lang.Da : Lang.En;
         EnsureEngine();
+
+        // Patch the game's hardcoded low-stock threshold (25% of capacity) so the "stock running low"
+        // to-do can fire earlier. One-shot; the patch reads LowStockAlertPercent live each stock check.
+        try { StockThresholdPatch.Apply(); } catch (Exception ex) { Debug.LogWarning("[BA BOT] stock patch: " + ex.Message); }
 
         try
         {
