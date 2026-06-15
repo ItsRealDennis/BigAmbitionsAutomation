@@ -30,8 +30,14 @@ public sealed class AutomationConfig
 
     /// <summary>How many in-game days ahead the game's to-do list should warn that a shop or warehouse
     /// is running low on stock. The game's own default is 2; BA BOT bumps it for more lead time.
-    /// Clamped to at least 1.</summary>
+    /// Clamped to at least 1. (Legacy: the real EA 0.11 mechanic is a stock-% threshold — see
+    /// <see cref="LowStockAlertPercent"/>; this field is kept for the legacy MelonLoader build.)</summary>
     public int LowStockWarningDays { get; set; } = 5;
+
+    /// <summary>Stock level (as a percent of a product's max shelf capacity) at or below which the game
+    /// adds a "stock running low" to-do. The game hardcodes 25%; raising this makes the warning fire
+    /// EARLIER (while more stock remains). Clamped to 25–90 in the UI. 25 = vanilla (no change).</summary>
+    public int LowStockAlertPercent { get; set; } = 25;
 
     /// <summary>Auto-pricing target as a percentage of the game's optimal price. 100 = exactly optimal;
     /// below 100 undercuts rivals, above 100 runs a premium. Clamped to a sane floor of 100 if &lt;= 0.</summary>

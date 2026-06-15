@@ -40,6 +40,11 @@ New-Item -ItemType Directory -Force -Path $deps | Out-Null
 Copy-Item $modDll  $dest -Force          # the single root mod assembly
 Copy-Item $coreDll $deps -Force          # the brain, as a dependency
 
+# Vendored Harmony (low-stock threshold patch). Must sit in Dependencies\ so the loader resolves it
+# before the mod assembly. The game does not provide Harmony.
+$harmony = Join-Path $repo "lib\0Harmony.dll"
+if (Test-Path $harmony) { Copy-Item $harmony $deps -Force }
+
 # Optional: thumbnail / locales / asset bundles get copied here later when they exist.
 $loc = Join-Path $repo "src\BAA.BigAmbitions\Locales"
 if (Test-Path $loc) { Copy-Item $loc (Join-Path $dest "Locales") -Recurse -Force }
