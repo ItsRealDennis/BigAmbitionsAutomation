@@ -61,6 +61,8 @@ public sealed class ModEntry : MelonMod
             _refreshTimer = 0f;
             _snapshot = GameProbe.Read();
             MaybeRefillEnergy();
+            if (_snapshot.HasSave)
+                TodoProbe.Apply(Config.LowStockWarningDays); // keep the low-stock to-do lead time applied
             ModPreferences.SaveIfChanged(Config);
         }
 

@@ -20,6 +20,7 @@ internal static class NewDayPatch
                 return;
             ModEntry.Log.Msg($"[NewDay] Day {s.Day} | Money ${s.Money:N0} | NetWorth ${s.NetWorth:N0}");
             Diagnostics.Activity.Add($"Day {s.Day} began  -  ${s.Money:N0}");
+            TodoProbe.Apply(ModEntry.Config.LowStockWarningDays); // re-assert before the day's to-do recompute
             ModEntry.Instance?.RunAutomation("NewDay");
         }
         catch (System.Exception ex)
