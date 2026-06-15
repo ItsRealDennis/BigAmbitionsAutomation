@@ -28,6 +28,11 @@ public sealed class AutomationConfig
     /// <summary>Target shelf level each product is restocked up to.</summary>
     public int RestockTarget { get; set; } = 20;
 
+    /// <summary>How many in-game days ahead the game's to-do list should warn that a shop or warehouse
+    /// is running low on stock. The game's own default is 2; BA BOT bumps it for more lead time.
+    /// Clamped to at least 1.</summary>
+    public int LowStockWarningDays { get; set; } = 5;
+
     /// <summary>Auto-pricing target as a percentage of the game's optimal price. 100 = exactly optimal;
     /// below 100 undercuts rivals, above 100 runs a premium. Clamped to a sane floor of 100 if &lt;= 0.</summary>
     public decimal PricingTargetPercent { get; set; } = 100m;

@@ -12,7 +12,7 @@ namespace BAA.Mod.UI;
 /// </summary>
 internal sealed class OverlayUI
 {
-    private const float W = 380f, H = 980f, X = 24f, Y = 24f, Pad = 16f;
+    private const float W = 380f, H = 1016f, X = 24f, Y = 24f, Pad = 16f;
     private const decimal ReserveStep = 500m;
     private const decimal FeeStep = 50m;
 
@@ -121,6 +121,15 @@ internal sealed class OverlayUI
             cfg.RestockTarget = System.Math.Max(1, cfg.RestockTarget - 5);
         if (Button(new Rect(ix + iw - 32, cy, 30, 26), "+", _btnDark))
             cfg.RestockTarget += 5;
+        cy += 36;
+
+        // --- Low-stock warning lead (days) ---
+        GUI.Label(new Rect(ix, cy + 5, iw - 76, 20), $"{Loc.T("LOW-STOCK WARNING")}  {cfg.LowStockWarningDays}d", _label);
+        TipIf(new Rect(ix, cy, iw - 76, 26), "How many days ahead the game's to-do list warns that stock is running low. The game's default is 2 — bump it for more lead time.");
+        if (Button(new Rect(ix + iw - 68, cy, 30, 26), "−", _btnDark))
+            cfg.LowStockWarningDays = System.Math.Max(1, cfg.LowStockWarningDays - 1);
+        if (Button(new Rect(ix + iw - 32, cy, 30, 26), "+", _btnDark))
+            cfg.LowStockWarningDays += 1;
         cy += 36;
 
         // --- Service fee per run ---

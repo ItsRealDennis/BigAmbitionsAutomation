@@ -42,6 +42,9 @@ internal static class Loc
         ["SCAN SHOPS"] = "SCAN BUTIKKER",
         ["RUN NOW"] = "KØR NU",
         ["RESTOCK TARGET"] = "GENOPFYLD MÅL",
+        ["LOW-STOCK WARNING"] = "LAV-LAGER VARSEL",
+        ["How many days ahead the game's to-do list warns that stock is running low. The game's default is 2 — bump it for more lead time."]
+            = "Hvor mange dage i forvejen spillets to-do-liste advarer om at lageret er ved at slippe op. Spillets standard er 2 — sæt den op for mere varsel.",
         ["FEE / RUN"] = "GEBYR / KØRSEL",
         ["Tax due"] = "Skyldig skat",
         ["Loans"] = "Lån",

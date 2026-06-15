@@ -125,6 +125,24 @@ probe walk a BuildingRegistration at runtime and log its inventory shape (more r
                     legacy `BAA.BigAmbitions` adapter returned `0f` (never wired), so the field is
                     genuinely unconfirmed on the current DLL — hence the reflection + discovery log.
 
+### Low-stock to-do lead time (panel: "LOW-STOCK WARNING")
+- Status:           TENTATIVE (reflection-based; ships behind the manual panel control, no automation)
+- Game type:        the to-do / low-stock subsystem (not yet identified)
+- Member:           the lead-days threshold the game uses to add a "stock running low" to-do — **not
+                    yet confirmed**. `TodoProbe` (in `BAA.Mod`) overrides it by reflection only when it
+                    finds a *settable static* int/float field on a to-do/stock-named type whose name
+                    reads like a day/lead/warning value and which currently equals the game default `2`.
+- Apply path:       `TodoProbe.Apply(LowStockWarningDays)` — called each 1 s tick and on `NewDay`, so the
+                    raised lead time is in place before the day's to-do recompute.
+- Discovery:        if no field matches, `TodoProbe` changes nothing and logs every numeric member of
+                    to-do/stock-named types to Player.log under `BA BOT to-do shape (low-stock lead
+                    discovery)`, so the real field (or the method to transpile) can be identified.
+- To CONFIRM:       read the dump, wire the real field into `TodoProbe.FindThresholdField` (or add a
+                    Harmony transpiler if the `2` is a hardcoded literal), then live-verify the to-do
+                    note appears the configured number of days early.
+- Notes / risks:    only a field currently holding exactly `2` is touched, keeping false positives
+                    near-zero; if the value is a const/literal or an instance field, nothing is changed.
+
 ## Checklist — Lifecycle
 - [ ] **IGameState.IsWorldReady** (a save is loaded & playable) — TO-DISCOVER
 - [ ] **IGameEvents.SaveLoaded / SaveUnloading** (reset engine + load per-save config) — TO-DISCOVER
