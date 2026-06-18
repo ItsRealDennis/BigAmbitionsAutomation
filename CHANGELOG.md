@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.10.0] — 2026-06-17
+
 ### Added
 - **Rebindable panel hotkey.** The overlay key is no longer hardcoded — change it in the panel
   (HOME tab → **Open panel** → **Rebind**, then press any key; Esc cancels). Defaults to **F8** and
@@ -35,4 +39,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   game's 25% threshold), and an opt-in **service-fee** challenge.
 - English & Dansk; settings persisted outside the save (uninstall loads vanilla clean).
 
-[Unreleased]: https://github.com/ItsRealDennis/BigAmbitionsAutomation/compare/main...HEAD
+[Unreleased]: https://github.com/ItsRealDennis/BigAmbitionsAutomation/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/ItsRealDennis/BigAmbitionsAutomation/compare/v0.9.0...v0.10.0

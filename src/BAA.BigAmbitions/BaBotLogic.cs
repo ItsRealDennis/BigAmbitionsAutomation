@@ -26,7 +26,7 @@ public sealed class BaBotLogic
 {
     /// <summary>Build tag, logged on load so a session's Player.log unambiguously identifies which mod
     /// build was running (the DLL only reloads on a full game restart).</summary>
-    internal const string Version = "v0.9.0 (2026-06-15) low-stock alert (Harmony) + SKILLS + tabs";
+    internal const string Version = "v0.10.0 (2026-06-17) rebindable hotkey + staff-bonus fix + drop legacy build";
 
     internal static readonly AutomationConfig Config = new();
 
