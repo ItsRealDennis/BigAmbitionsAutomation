@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+- **Auto-Restock now actually restocks mid/large shops.** The target was a flat **20 total units** per
+  product (counting backroom stock), so any shop already holding ≥20 of an item bought nothing. Restock
+  now fills each product up to the **combined capacity of the shelves that sell it** (read live from the
+  game, same model as the low-stock warning); falls back to the flat target if capacity can't be read.
+  New **RESTOCK FULL** toggle in the AUTO tab (on by default) — turn it off to keep the old flat
+  Restock Target behaviour. Still preview-first and reserve-floor gated.
 
 ## [0.10.0] — 2026-06-17
 

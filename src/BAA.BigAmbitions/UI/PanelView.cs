@@ -228,6 +228,7 @@ internal sealed class PanelView
             ("EMPLOYEES", () => cfg.EmployeesEnabled, v => cfg.EmployeesEnabled = v, "Morale bonus to unhappy staff when allowed, and finishes completed training."),
             ("LOGISTICS", () => cfg.LogisticsEnabled, v => cfg.LogisticsEnabled = v, "Sets up a repeating weekly import for any product running low."),
             ("RESTOCK",   () => cfg.RestockEnabled,   v => cfg.RestockEnabled = v,   "Buys products back up to your target when shelves run low."),
+            ("RESTOCK FULL", () => cfg.RestockToCapacity, v => cfg.RestockToCapacity = v, "Fill each product up to its shelf capacity (recommended). Off = use the flat Restock Target number instead."),
             ("PRICING",   () => cfg.PricingEnabled,   v => cfg.PricingEnabled = v,   "Auto-sets each product to the game's optimal neighborhood price."),
             ("WELLBEING", () => cfg.WellbeingEnabled, v => cfg.WellbeingEnabled = v, "Refills energy and tops up happiness so you never stop to rest."),
             ("TURBO",     () => GameActions.TurboOn,  v => GameActions.SetTurbo(v, cfg.TurboPercent), "AFK accelerator: speeds game time so days pass fast and daily automation runs while away."),

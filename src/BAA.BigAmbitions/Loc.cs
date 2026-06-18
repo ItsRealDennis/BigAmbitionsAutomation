@@ -38,6 +38,7 @@ internal static class Loc
         ["Tax due"] = "Skyldig skat", ["Loans"] = "Lån", ["Staff"] = "Personale", ["LIVE MODE"] = "LIVE-TILSTAND",
         ["AUTOMATION (MASTER)"] = "AUTOMATION (HOVED)", ["AUTO-RESTOCK"] = "AUTO-GENOPFYLD",
         ["LOGISTICS"] = "LOGISTIK", ["EMPLOYEES"] = "MEDARBEJDERE", ["FINANCE AUTO-PAY"] = "FINANS AUTO-BETAL",
+        ["RESTOCK FULL"] = "GENOPFYLD FULDT",
         ["AUTO-WELLBEING"] = "AUTO-VELVÆRE", ["SERVICE FEE"] = "SERVICEGEBYR",
         ["ENERGY"] = "ENERGI", ["SKIP DAY"] = "SPRING DAG OVER", ["TURBO SPEED"] = "TURBOFART", ["TAXI"] = "TAXA",
         ["No activity yet"] = "Ingen aktivitet endnu",

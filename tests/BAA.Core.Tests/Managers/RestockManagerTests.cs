@@ -23,6 +23,21 @@ public class RestockManagerTests
     }
 
     [Fact]
+    public void Plan_fills_to_large_shelf_capacity_target()
+    {
+        // Restock-to-capacity feeds a big target (the summed shelf capacity, read by the adapter);
+        // the planner buys the full shortfall up to it. Guards the fix for shops whose shelves hold
+        // far more than the old flat target of 20.
+        var world = WorldBuilder.New().Cash(10000m).Business("b1")
+            .Item("b1", "milk", current: 30, target: 200, cap: 200, unitCost: 2m).Build();
+
+        var plan = new RestockManager().Plan(Ctx(world, new AutomationConfig { RestockEnabled = true }));
+
+        var action = Assert.Single(plan.Actions);
+        Assert.Equal(-340m, action.CashDelta); // shortfall (200-30)=170 * unitCost 2
+    }
+
+    [Fact]
     public void Plan_is_empty_when_master_switch_off()
     {
         var world = WorldBuilder.New().Cash(100m).Business("b1")

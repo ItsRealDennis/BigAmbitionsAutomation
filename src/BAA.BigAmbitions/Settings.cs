@@ -46,6 +46,7 @@ internal static class Settings
             cfg.CashReserveFloor  = M(kv, "CashReserveFloor", cfg.CashReserveFloor);
             cfg.ServiceFeePerRun  = M(kv, "ServiceFeePerRun", cfg.ServiceFeePerRun);
             cfg.RestockTarget     = I(kv, "RestockTarget", cfg.RestockTarget);
+            cfg.RestockToCapacity = B(kv, "RestockToCapacity", cfg.RestockToCapacity);
             cfg.LowStockAlertPercent = I(kv, "LowStockAlertPercent", cfg.LowStockAlertPercent);
             cfg.PricingEnabled    = B(kv, "PricingEnabled", cfg.PricingEnabled);
             cfg.PricingTargetPercent = M(kv, "PricingTargetPercent", cfg.PricingTargetPercent);
@@ -89,6 +90,7 @@ internal static class Settings
         "CashReserveFloor="  + c.CashReserveFloor.ToString(CultureInfo.InvariantCulture),
         "ServiceFeePerRun="  + c.ServiceFeePerRun.ToString(CultureInfo.InvariantCulture),
         "RestockTarget="     + c.RestockTarget.ToString(CultureInfo.InvariantCulture),
+        "RestockToCapacity=" + c.RestockToCapacity,
         "LowStockAlertPercent=" + c.LowStockAlertPercent.ToString(CultureInfo.InvariantCulture),
         "PricingEnabled="    + c.PricingEnabled,
         "PricingTargetPercent=" + c.PricingTargetPercent.ToString(CultureInfo.InvariantCulture),

@@ -25,8 +25,15 @@ public sealed class AutomationConfig
     /// <summary>Keep the player's energy topped up automatically (instant QoL, no business needed).</summary>
     public bool WellbeingEnabled { get; set; }
 
-    /// <summary>Target shelf level each product is restocked up to.</summary>
+    /// <summary>Target shelf level each product is restocked up to when <see cref="RestockToCapacity"/>
+    /// is OFF (a flat per-product unit count).</summary>
     public int RestockTarget { get; set; } = 20;
+
+    /// <summary>When ON (default), auto-restock fills each product up to the total capacity of the
+    /// shelves that sell it, instead of the flat <see cref="RestockTarget"/>. This is what makes
+    /// restock actually trigger on mid/large shops (whose shelves hold far more than 20). The adapter
+    /// reads live shelf capacity; if it can't, it falls back to <see cref="RestockTarget"/> per item.</summary>
+    public bool RestockToCapacity { get; set; } = true;
 
     /// <summary>How many in-game days ahead the game's to-do list should warn that a shop or warehouse
     /// is running low on stock. The game's own default is 2; BA BOT bumps it for more lead time.

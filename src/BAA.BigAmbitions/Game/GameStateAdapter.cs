@@ -103,18 +103,61 @@ internal sealed class GameStateAdapter : IGameState
         if (sale == null)
             return lines;
 
-        int target = _config.RestockTarget;
+        int flat = _config.RestockTarget;
+        // Restock-to-capacity (default): fill each product up to the combined capacity of the shelves
+        // that sell it, so mid/large shops actually restock (a flat 20 never triggers on them). Read
+        // live shelf capacity; per-item we fall back to the flat target if capacity can't be read.
+        var capByItem = _config.RestockToCapacity ? ReadShelfCapacities(reg) : null;
+
         for (int j = 0; j < sale.Count; j++)
         {
             var name = sale[j];
             if (string.IsNullOrEmpty(name)) continue;
+            // Count TOTAL stock (shelf + backroom + pallets) so we don't re-buy stock already on hand
+            // that the game will shelve on its own; target is what we top up to.
             int current = 0;
             try { current = Helpers.BuildingHelper.CountTotalResourcesInStock(reg, name, true, true); } catch { }
             decimal unitCost = 0m;
             try { unitCost = (decimal)ItemHelper.GetPrice(name, reg); } catch { }
+
+            int target = flat;
+            if (capByItem != null && capByItem.TryGetValue(name, out var cap) && cap > 0)
+                target = cap;
+
             lines.Add(new InventoryLine(new ItemId(name), name, current, target, target, unitCost));
         }
         return lines;
+    }
+
+    /// <summary>Sum the max stock capacity of every point-of-sale shelf in this building, keyed by the
+    /// item it stocks — mirrors the game's own low-stock model (each POS <c>ItemInstance</c> exposes a
+    /// <c>CargoInstance</c> with <c>GetMaxStockCapacity</c>). Fully guarded: returns whatever it could
+    /// read, empty on failure (callers then fall back to the flat target).</summary>
+    private static Dictionary<string, int> ReadShelfCapacities(BuildingRegistration reg)
+    {
+        var cap = new Dictionary<string, int>();
+        try
+        {
+            var instances = reg.itemInstances;
+            if (instances == null) return cap;
+            foreach (var inst in instances.Values)
+            {
+                if (inst == null) continue;
+                try
+                {
+                    if ((inst.ItemCached.type & BigAmbitions.Items.ItemType.PointOfSale) == 0) continue;
+                    var stock = inst.GetStockInstance();
+                    if (stock == null || string.IsNullOrEmpty(stock.itemName)) continue;
+                    int max = stock.GetMaxStockCapacity(inst);
+                    if (max <= 0) continue;
+                    cap.TryGetValue(stock.itemName, out var cur);
+                    cap[stock.itemName] = cur + max;
+                }
+                catch { }
+            }
+        }
+        catch { }
+        return cap;
     }
 
     public IReadOnlyList<PricingLine> GetPricing(BusinessId business)
