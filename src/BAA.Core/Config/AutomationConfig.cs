@@ -60,6 +60,10 @@ public sealed class AutomationConfig
     /// <summary>UI language code: "en" or "da".</summary>
     public string Language { get; set; } = "en";
 
+    /// <summary>Name of the key that toggles the overlay (a UnityEngine.InputSystem.Key name, e.g. "F8").
+    /// Stored as a string so Core stays free of any Unity reference; rebindable in the panel.</summary>
+    public string Hotkey { get; set; } = "F8";
+
     /// <summary>Automation will not spend cash below this floor.</summary>
     public decimal CashReserveFloor { get; set; }
 

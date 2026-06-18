@@ -20,12 +20,14 @@ internal sealed class PanelView
     private Text _status;
     private Text _sub;
     private Text _log;
+    private Text _hotkeyValue;
     private GameObject _tip;
     private Text _tipText;
     private RectTransform _winRect;
     private Canvas _canvas;
     private AutomationConfig _cfg;
-    private Action _runNow, _onClose;
+    private Action _runNow, _onClose, _onRebind;
+    private Func<string> _hotkeyText;
     private const float MinScale = 0.5f, MaxScale = 1.7f;
 
     private sealed class ToggleRow { public Image Pill; public Text PillText; public Text Label; public Func<bool> Get; }
@@ -72,9 +74,9 @@ internal sealed class PanelView
     public void SetVisible(bool v) { if (_root != null && _root.activeSelf != v) { _root.SetActive(v); if (!v && _tip != null) _tip.SetActive(false); } }
     public void Destroy() { if (_root != null) { UnityEngine.Object.Destroy(_root); _root = null; } }
 
-    public void Build(AutomationConfig cfg, Action runNow, Action onClose)
+    public void Build(AutomationConfig cfg, Action runNow, Action onRebind, Func<string> hotkeyText, Action onClose)
     {
-        _cfg = cfg; _runNow = runNow; _onClose = onClose;
+        _cfg = cfg; _runNow = runNow; _onRebind = onRebind; _hotkeyText = hotkeyText; _onClose = onClose;
         _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         if (_font == null) { try { _font = Font.CreateDynamicFontFromOSFont("Arial", 16); } catch { } }
 
@@ -207,6 +209,14 @@ internal sealed class PanelView
         Btn(c, "Energy", 1 * (tw + 12), y, tw, 44, Blue, White, Loc.T("ENERGY"), 14, GameActions.RefillEnergy, "Instantly refill your energy AND food to full.");
         Btn(c, "Skip", 2 * (tw + 12), y, tw, 44, RowBg, White, Loc.T("SKIP DAY"), 14, GameActions.SkipToMorning, "Fast-forward to the next morning (08:00). Crossing midnight runs the daily automation.");
         Btn(c, "Taxi", 3 * (tw + 12), y, tw, 44, Cyan, Slate, Loc.T("TAXI"), 14, GameActions.CallTaxi, "Open the taxi map to fast-travel.");
+
+        // Hotkey rebind row
+        y += 58;
+        var hk = Panel(c, "HkRow", 0, y, ContentW, 40, RowBg, 9);
+        MkText(hk.transform, "HkLbl", 14, 0, ContentW - 150, 40, 14, White, TextAnchor.MiddleLeft, FontStyle.Bold).text = Loc.T("OPEN PANEL");
+        _hotkeyValue = MkText(hk.transform, "HkVal", ContentW - 150, 0, 78, 40, 14, Cyan, TextAnchor.MiddleRight, FontStyle.Bold);
+        Btn(hk.transform, "Rebind", ContentW - 64, 6, 56, 28, Blue, White, Loc.T("REBIND"), 12, () => { try { _onRebind?.Invoke(); } catch { } },
+            "Click, then press the key you want to open this panel. Esc cancels.");
     }
 
     private void BuildAutoTab(Transform c)
@@ -311,6 +321,7 @@ internal sealed class PanelView
                 t.Label.color = on ? White : Dim;
             }
             foreach (var st in _steppers) st.Label.text = st.Format();
+            if (_hotkeyValue != null && _hotkeyText != null) _hotkeyValue.text = _hotkeyText();
 
             if (_log != null)
             {
@@ -481,7 +492,7 @@ internal sealed class PanelView
         if (_cfg == null) return;
         bool wasVisible = _root != null && _root.activeSelf;
         int tab = _activeTab;
-        var cfg = _cfg; var run = _runNow; var close = _onClose;
+        var cfg = _cfg; var run = _runNow; var reb = _onRebind; var hk = _hotkeyText; var close = _onClose;
         Destroy();
         _toggles.Clear();
         _steppers.Clear();
@@ -490,7 +501,7 @@ internal sealed class PanelView
         _skillContent = null;
         _skillsReadAt = -99f;
         _activeTab = tab;
-        Build(cfg, run, close);
+        Build(cfg, run, reb, hk, close);
         SetVisible(wasVisible);
     }
 

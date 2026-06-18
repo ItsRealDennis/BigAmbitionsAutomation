@@ -25,6 +25,7 @@ internal static class Loc
         ["RUN NOW"] = "KØR NU", ["RESTOCK TARGET"] = "GENOPFYLD MÅL", ["FEE / RUN"] = "GEBYR / KØRSEL",
         ["SKILLS"] = "FÆRDIGHEDER", ["MAX"] = "MAKS",
         ["HOME"] = "HJEM", ["AUTO"] = "AUTO", ["STAFF"] = "STAB", ["LOG"] = "LOG",
+        ["OPEN PANEL"] = "ÅBN PANEL", ["REBIND"] = "SKIFT", ["PRESS A KEY…"] = "TRYK EN TAST…",
         ["LOW-STOCK WARNING"] = "LAV-LAGER VARSEL", ["LOW-STOCK ALERT"] = "LAV-LAGER ALARM",
         ["Tap MAX to train a person's skills to 100%."] = "Tryk MAKS for at træne en persons færdigheder til 100%.",
         ["Warn that stock is running low when a product drops below this % of full. Higher = warned earlier. The game's default is 25%."]

@@ -10,8 +10,8 @@ An in-game automation suite for **[Big Ambitions](https://store.steampowered.com
 
 ![release](https://img.shields.io/github/v/release/ItsRealDennis/BigAmbitionsAutomation?include_prereleases&label=release&color=5cc6ff)
 ![platform](https://img.shields.io/badge/platform-Windows-555)
-![loader](https://img.shields.io/badge/MelonLoader-0.7.x-54dc8e)
-![made with](https://img.shields.io/badge/C%23-net6.0-blueviolet)
+![loader](https://img.shields.io/badge/Steam%20Workshop-official%20mod%20API-54dc8e)
+![made with](https://img.shields.io/badge/C%23-netstandard2.1-blueviolet)
 ![price](https://img.shields.io/badge/price-free%20%26%20open--source-54dc8e)
 
 <br>
@@ -48,14 +48,13 @@ Automation is **default-OFF** and runs only through a plan → safety-gate → a
 
 ## ⬇️ Install (players)
 
-**Everything's in the zip — MelonLoader included. Nothing else to download.**
+**Subscribe on the Steam Workshop — nothing else to download.** BA BOT ships through Big Ambitions' official mod support (EA 0.11+), so there's no MelonLoader and no manual file copying.
 
-1. Download the latest release: **[BA-BOT-v*.zip](https://github.com/ItsRealDennis/BigAmbitionsAutomation/releases/latest)** and unzip. Inside are just two things: **`Install BA BOT`** and the bundled **`MelonLoader Installer.exe`**.
-2. Double-click **`Install BA BOT`**. It auto-detects your game. If MelonLoader is missing, click **“1 · Install MelonLoader”** — it opens the bundled installer for you (point it at Big Ambitions, install, launch the game once). On Windows 11, turn **off Smart App Control** if asked (it blocks unsigned mods).
-3. Back in the window, click **“2 · Install BA BOT”**.
-4. Launch the game and press **F8**.
+1. Open the **BA BOT** Steam Workshop page (or the in-game **Mods** menu) and click **Subscribe**.
+2. Launch Big Ambitions and make sure **BA BOT** is **enabled** in the in-game Mods list.
+3. Load a save and press **F8** to open the control panel.
 
-To remove: open the `files` folder and run `uninstall.bat`. *(Prefer a text installer? `files\install-console.bat`.)*
+To remove: **Unsubscribe** in the Workshop (or disable it in the in-game Mods list). BA BOT never writes your save, so vanilla loads clean afterwards.
 
 ## 🛡️ Built to fail safe
 
@@ -70,19 +69,18 @@ The testable "brain" never touches the volatile game API:
 
 | Project | TFM | Role |
 |---|---|---|
-| `src/BAA.Core` | net6.0 | The brain. **Zero game refs.** Orchestration engine, safety gate + breakers, managers, config, adapter interfaces. Pure + unit-tested. |
-| `src/BAA.Mod` | net6.0 | The MelonLoader mod — the **only** project that touches the game/IL2CPP (adapter, Harmony hooks, IMGUI overlay). |
-| `tests/BAA.Core.Tests` | net8.0 | xUnit (18 green) against in-memory fakes; runs with no game installed. |
+| `src/BAA.Core` | netstandard2.1 | The brain. **Zero game refs.** Orchestration engine, safety gate + breakers, managers, config, adapter interfaces. Pure + unit-tested. |
+| `src/BAA.BigAmbitions` | netstandard2.1 | The Steam Workshop mod (official EA 0.11 Mono API) — the **only** project that touches the game (adapter, Harmony low-stock patch, uGUI overlay). |
+| `tests/BAA.Core.Tests` | net8.0 | xUnit (59 green) against in-memory fakes; runs with no game installed. |
 | `tools/ApiDump` | net8.0 | Dumps the game's type/method/field surface for API discovery. |
 
 ```powershell
-dotnet test  tests/BAA.Core.Tests/BAA.Core.Tests.csproj     # 18 tests, no game needed
-dotnet build src/BAA.Mod/BAA.Mod.csproj -c Release
-#  bin/Release/net6.0/BAA.Mod.dll  -> <Big Ambitions>/Mods/
-#  bin/Release/net6.0/BAA.Core.dll -> <Big Ambitions>/UserLibs/
+dotnet test  tests/BAA.Core.Tests/BAA.Core.Tests.csproj      # 59 tests, no game needed
+dotnet build src/BAA.BigAmbitions/BAA.BigAmbitions.csproj -c Release
+powershell -ExecutionPolicy Bypass -File tools/deploy-mod.ps1 # build + deploy to ModsLocal for in-game testing
 ```
 
-Requirements to build: .NET 8 SDK (builds the `net6.0` mod), MelonLoader installed (run the game once to generate `Il2CppBigAmbitions.dll`). See `docs/API-MAP.md` and `docs/UPDATE-RUNBOOK.md`.
+Requirements to build: .NET 8 SDK and a local Big Ambitions install (EA 0.11+) — the mod references the game's managed assemblies under `Big Ambitions_Data/Managed`. See `docs/API-MAP.md` and `docs/UPDATE-RUNBOOK.md`.
 
 ## ⚠️ Disclaimer
 

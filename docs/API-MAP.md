@@ -40,7 +40,7 @@ member, and access path discovered in the decompiler + live inspection. The adap
 
 ## Discovered & compile-verified (current EA build, generated DLL)
 Master access path for state: **`Il2Cpp.SaveGameManager.Current`** (static) → `Il2Cpp.GameInstance`
-(null when no save is loaded). The `BAA.Mod` probe references all of the below and compiles clean.
+(null when no save is loaded). The `BAA.BigAmbitions` adapter references all of the below and compiles clean.
 
 - `Il2Cpp.GameManager : InstanceBehavior<GameManager>` (singleton `.Instance`):
   - `NewDay()` (private instance) — **daily-tick Harmony hook** = auto-restock trigger. Patched, compiles.
@@ -107,10 +107,13 @@ probe walk a BuildingRegistration at runtime and log its inventory shape (more r
 - [ ] **IGameEvents.EmployeeResigned** — TO-DISCOVER
 
 ### Employee skill (SKILLS panel — "train a person to 100%")
+- **Superseded:** the current `BAA.BigAmbitions` `SkillProbe` uses the confirmed API
+  (`EmployeeInstance.characterData.skills` + `IncreaseSkill`, clamped at 100), not the reflection
+  discovery described below. The notes below are kept as historical context from the legacy build.
 - Status:           TENTATIVE (reflection-based; ships behind the manual SKILLS panel, no automation)
 - Game type:        `Il2Cpp.EmployeeInstance` (elements of `GameInstance.EmployeeInstances`)
 - Member:           the per-employee skill/competence level field — **field name not yet confirmed**.
-                    `SkillProbe` (in `BAA.Mod`) locates it by reflection over the candidate names in
+                    `SkillProbe` (in the legacy build) located it by reflection over the candidate names in
                     `SkillProbe.SkillNames` (`skill`, `skillLevel`, `competence`, `expertise`, …) and,
                     if none match, logs every numeric member of the first employee to Player.log under
                     `BA BOT employee shape (skill discovery)` so the real one can be identified.
@@ -126,10 +129,13 @@ probe walk a BuildingRegistration at runtime and log its inventory shape (more r
                     genuinely unconfirmed on the current DLL — hence the reflection + discovery log.
 
 ### Low-stock to-do lead time (panel: "LOW-STOCK WARNING")
+- **Superseded:** the current build ships `StockThresholdPatch` (a Harmony transpiler that rewrites the
+  game's hardcoded 25%-of-capacity low-stock literal to a configurable fraction). The reflection-based
+  `TodoProbe` below is from the legacy build and no longer exists. Kept as historical context.
 - Status:           TENTATIVE (reflection-based; ships behind the manual panel control, no automation)
 - Game type:        the to-do / low-stock subsystem (not yet identified)
 - Member:           the lead-days threshold the game uses to add a "stock running low" to-do — **not
-                    yet confirmed**. `TodoProbe` (in `BAA.Mod`) overrides it by reflection only when it
+                    yet confirmed**. `TodoProbe` (in the legacy build) overrode it by reflection only when it
                     finds a *settable static* int/float field on a to-do/stock-named type whose name
                     reads like a day/lead/warning value and which currently equals the game default `2`.
 - Apply path:       `TodoProbe.Apply(LowStockWarningDays)` — called each 1 s tick and on `NewDay`, so the

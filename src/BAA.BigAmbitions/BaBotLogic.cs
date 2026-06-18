@@ -45,6 +45,7 @@ public sealed class BaBotLogic
     private CursorLockMode _savedLock;
     private bool _savedCursorVisible;
     private bool _subscribed;
+    private bool _rebinding;
 
     private OrchestrationEngine _engine;
     private GameStateAdapter _state;
@@ -62,7 +63,7 @@ public sealed class BaBotLogic
 
         try
         {
-            _panel.Build(Config, () => RunAutomation("manual"), () => { _visible = false; _panel.SetVisible(false); });
+            _panel.Build(Config, () => RunAutomation("manual"), OnRebindStart, HotkeyLabel, () => { _visible = false; _panel.SetVisible(false); });
             _panel.SetVisible(false);
         }
         catch (Exception ex) { Debug.LogError("[BA BOT] panel build failed: " + ex); }
@@ -128,10 +129,24 @@ public sealed class BaBotLogic
             try
             {
                 var kb = Keyboard.current;
-                if (kb != null && kb.f8Key.wasPressedThisFrame && !GameManager.HasInputSelected())
+                if (kb != null)
                 {
-                    _visible = !_visible;
-                    _panel.SetVisible(_visible);
+                    if (_rebinding)
+                    {
+                        foreach (var kc in kb.allKeys)
+                        {
+                            if (!kc.wasPressedThisFrame) continue;
+                            if (kc.keyCode != Key.Escape) Config.Hotkey = kc.keyCode.ToString(); // Esc = cancel
+                            _rebinding = false;
+                            Settings.SaveIfChanged(Config);
+                            break;
+                        }
+                    }
+                    else if (kb[CurrentHotkey()].wasPressedThisFrame && !GameManager.HasInputSelected())
+                    {
+                        _visible = !_visible;
+                        _panel.SetVisible(_visible);
+                    }
                 }
             }
             catch { }
@@ -232,4 +247,20 @@ public sealed class BaBotLogic
         "load"   => "Auto (on load)",
         _        => "Auto (hour)",
     };
+
+    // ---- hotkey rebinding ----
+
+    /// <summary>Panel "Rebind" button: capture the next key pressed (see OnFrame). Esc cancels.</summary>
+    private void OnRebindStart() => _rebinding = true;
+
+    /// <summary>What the panel shows for the current hotkey (or the prompt while rebinding).</summary>
+    private string HotkeyLabel()
+        => _rebinding ? Loc.T("PRESS A KEY…") : (string.IsNullOrEmpty(Config.Hotkey) ? "F8" : Config.Hotkey);
+
+    /// <summary>The configured toggle key, parsed from the saved name; falls back to F8.</summary>
+    private static Key CurrentHotkey()
+    {
+        try { if (System.Enum.TryParse<Key>(Config.Hotkey, out var k) && k != Key.None) return k; } catch { }
+        return Key.F8;
+    }
 }

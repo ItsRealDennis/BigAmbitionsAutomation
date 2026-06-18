@@ -259,9 +259,15 @@ internal sealed class GameStateAdapter : IGameState
             if (e == null) continue;
             try { if (e.IsCandidate) continue; } catch { }
 
-            float sat = 1f;
+            // The game stores satisfaction on a 0-100 scale (EmployeeInstance clamps it to [0,100]); the
+            // engine works in 0-1, so always divide. A prior `if (sat > 1.5f)` heuristic skipped the divide
+            // for 0-1.5% morale, making the NEEDIEST staff look fully satisfied (1.0) so they never got the
+            // resignation-preventing bonus. Default 100 (=satisfied) when unreadable, so a failed read never
+            // triggers a bonus.
+            float sat = 100f;
             try { sat = e.satisfaction; } catch { }
-            if (sat > 1.5f) sat /= 100f; // normalise a 0-100 morale scale to 0-1
+            sat /= 100f;
+            if (sat < 0f) sat = 0f; else if (sat > 1f) sat = 1f;
 
             decimal wage = 0m;
             try { wage = (decimal)e.hourlyWage; } catch { }

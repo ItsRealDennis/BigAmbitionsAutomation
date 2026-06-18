@@ -51,6 +51,7 @@ internal static class Settings
             cfg.PricingTargetPercent = M(kv, "PricingTargetPercent", cfg.PricingTargetPercent);
             cfg.TurboPercent      = I(kv, "TurboPercent", cfg.TurboPercent);
             cfg.Language          = kv.TryGetValue("Language", out var lang) ? lang : cfg.Language;
+            if (kv.TryGetValue("Hotkey", out var hk) && !string.IsNullOrEmpty(hk)) cfg.Hotkey = hk;
             UiPrefs.Scale = F(kv, "UiScale", UiPrefs.Scale);
             UiPrefs.PosX  = F(kv, "UiPosX", UiPrefs.PosX);
             UiPrefs.PosY  = F(kv, "UiPosY", UiPrefs.PosY);
@@ -93,6 +94,7 @@ internal static class Settings
         "PricingTargetPercent=" + c.PricingTargetPercent.ToString(CultureInfo.InvariantCulture),
         "TurboPercent="      + c.TurboPercent.ToString(CultureInfo.InvariantCulture),
         "Language="          + c.Language,
+        "Hotkey="            + c.Hotkey,
         "UiScale="           + UiPrefs.Scale.ToString(CultureInfo.InvariantCulture),
         "UiPosX="            + UiPrefs.PosX.ToString(CultureInfo.InvariantCulture),
         "UiPosY="            + UiPrefs.PosY.ToString(CultureInfo.InvariantCulture),
